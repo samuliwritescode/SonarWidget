@@ -46,22 +46,16 @@ public class LowranceSonar {
 	
 	public Ping[] getPingRange(int index, int length) throws IOException {
 		
-		RandomAccessFile inputstream = new RandomAccessFile(file, "r");
-		inputstream.seek(10+blocksize*index);
+		DataInputStream inputstream = new DataInputStream(new FileInputStream(file));
+		inputstream.skip(10+blocksize*index);
 		
 		Ping[] retval = new Ping[length];
+		
 		for(int loop=0; loop < length; loop++) {
-			//inputstream.seek(10+blocksize*(index+loop));
 			retval[loop] = new Ping(inputstream);
 		}
 		
 		return retval;
-	}
-	
-	public Ping getPing(int index) throws IOException {
-		RandomAccessFile inputstream = new RandomAccessFile(file, "r");
-		inputstream.seek(10+blocksize*index);
-		return new Ping(inputstream);
 	}
 	
 	public class Ping {
@@ -103,46 +97,53 @@ public class LowranceSonar {
 		private static final float KNOTS = 1.852f;
 
 		
-		public Ping(RandomAccessFile inputstream) throws IOException {
-			long offsetBefore = inputstream.getFilePointer();
+		public Ping(DataInputStream inputstream) throws IOException {
+			long headerlen = 2;
 			mask = toBigEndianShort(inputstream.readShort());
-					
-			lowLimit = isPresent(LOWERLIMIT)?toBigEndianFloat(inputstream.readInt()):0;
-			depth = isPresent(DEPTH)?toBigEndianFloat(inputstream.readInt()):0;
-			temp = isPresent(WATERTEMP)?toBigEndianFloat(inputstream.readInt()):0;
-			//waterSpeed = isPresent(WATERSPEED)?toBigEndianFloat(inputstream.readInt()):0;
 			
-			positionY = isPresent(POSITION)?toBigEndianInt(inputstream.readInt()):0;
-			positionX = isPresent(POSITION)?toBigEndianInt(inputstream.readInt()):0;
-			
-			surfaceDepth = isPresent(SURFACEDEPTH)?toBigEndianFloat(inputstream.readInt()):0;
-			topOfBottomDepth = isPresent(TOPOFBOTTOMDEPTH)?toBigEndianFloat(inputstream.readInt()):0;
-			timeOffset = isPresent(TIMEOFFSET)?toBigEndianInt(inputstream.readInt()):0;
-			
-			speed = isPresent(SPEED)?toBigEndianFloat(inputstream.readInt()):0;
-			track = isPresent(TRACK)?toBigEndianFloat(inputstream.readInt()):0;
-			altitude = isPresent(ALTITUDE)?toBigEndianFloat(inputstream.readInt()):0;
-			
-			rate = toBigEndianInt(inputstream.readInt());
-			
-			long headerlen = inputstream.getFilePointer()-offsetBefore;
-			soundings = new byte[(int) (blocksize-headerlen)];
-			for(int loop=0; loop < blocksize-headerlen; loop++) {
-				soundings[loop] = inputstream.readByte();				
+			if(mask == 0x6D14) {
+				headerlen += 48;
+				byte[] headers = new byte[48];
+				inputstream.read(headers, 0, 48);
+				
+				lowLimit = toBigEndianFloat(headers, 0);
+				depth = toBigEndianFloat(headers, 4);
+				temp = toBigEndianFloat(headers, 8);
+				//waterSpeed = isPresent(WATERSPEED)?toBigEndianFloat(inputstream.readInt()):0;
+				
+				positionY = toBigEndianInt(headers, 12);
+				positionX = toBigEndianInt(headers, 16);
+				
+				surfaceDepth = toBigEndianFloat(headers, 20);
+				topOfBottomDepth = toBigEndianFloat(headers, 24);
+				timeOffset = toBigEndianInt(headers, 28);
+				
+				speed = toBigEndianFloat(headers, 32);
+				track = toBigEndianFloat(headers, 36);
+				altitude = toBigEndianFloat(headers, 40);
+				
+				rate = toBigEndianInt(headers, 44);
+				
 			}
 			
+			soundings = new byte[(int) (blocksize-headerlen)];
+			inputstream.read(soundings, 0, (int) (blocksize-headerlen));			
 		}
 		
-		private int toBigEndianInt(int littleendian) {
-			return Integer.reverseBytes(littleendian);
+		private int toBigEndianInt(byte[] raw, int offset) {
+			return 0xFF000000&(raw[offset+3]<<24) | 0x00FF0000&(raw[offset+2]<<16) | 0x0000FF00&(raw[offset+1]<<8) | 0x000000FF&raw[offset];
+			//return Integer.reverseBytes(littleendian);
 		}
 		
-		private float toBigEndianFloat(int littleendian) {
-			return Float.intBitsToFloat(toBigEndianInt(littleendian));
+		private float toBigEndianFloat(byte[] raw, int offset) {
+			return Float.intBitsToFloat(toBigEndianInt(raw, offset));
 		}
 		
 		private short toBigEndianShort(short littleendian) {
-			return Short.reverseBytes(littleendian);
+			
+			return (short) (((0xFF00&littleendian)>>8)&0x00FF |
+					((0x00FF&littleendian)<<8)&0xFF00);
+			//return Short.reverseBytes(littleendian);
 		}
 		
 		private boolean isPresent(short field) {
