@@ -66,8 +66,8 @@ public class Main {
 	}
 	
 	public static BufferedImage createImage(LowranceSonar sonar, int offset) {
-		int width = 900;
-		int height = 600;
+		int width = 400;
+		int height = 200;
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_RGB);
 		
 		try {

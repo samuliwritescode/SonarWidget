@@ -17,9 +17,6 @@ import com.vaadin.terminal.StreamResource;
 import com.vaadin.ui.*;
 
 public class OpenlayersexperimentApplication extends Application {
-	
-	private final int height = 400;
-	private final int width = 600;
 	private VerticalLayout layout;
 	private LowranceSonar sonar;
 	private BufferedImage image;
@@ -28,8 +25,7 @@ public class OpenlayersexperimentApplication extends Application {
 	@Override
 	public void init() {
 		Window mainWindow = new Window("Openlayersexperiment Application");
-		
-		image = new BufferedImage (width, height, BufferedImage.TYPE_INT_RGB);
+
 		layout = new VerticalLayout();
 		try {
 			sonar = new LowranceSonar(new File("/Users/samuli/Documents/Sonar0011.slg"));
@@ -62,7 +58,7 @@ public class OpenlayersexperimentApplication extends Application {
 		
 		LowranceSonar.Ping firstping;
 		try {
-			firstping = this.sonar.getPingRange(index, this.width)[0];
+			firstping = this.sonar.getPingRange(index, 1)[0];
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
