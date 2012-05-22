@@ -1,11 +1,12 @@
 package com.example.openlayersexperiment;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -71,6 +72,10 @@ public class Main {
 		
 		try {
 			LowranceSonar.Ping[] pings = sonar.getPingRange(offset, width);
+			
+			if(pings.length > 0) {
+				//System.out.println(pings[0].toString());
+			}
 	
 			for(int loop=0; loop < width; loop++) {
 				
@@ -83,7 +88,19 @@ public class Main {
 							(0xFF0000&(sounding<<16));
 					image.setRGB(loop, i, color);
 				}
+				image.setRGB(loop, (int)(height*pings[loop].getDepth()/pings[loop].getLowLimit()), 0x00FF0000);
+				image.setRGB(loop, ((int)(pings[loop].getTimeStamp()*0.001)%(height)), 0x000000FF);
+				
 			}
+			Graphics graphics = image.getGraphics();
+			graphics.setColor(Color.black);
+			graphics.drawString(String.format("depth: %02f", pings[0].getDepth()), 10, 10);
+			graphics.drawString(String.format("pos: %f lat, %f lon", pings[0].getLatitude(), pings[0].getLongitude()), 10, 30);
+			graphics.drawString(String.format("time %d", pings[0].getTimeStamp()/1000), 10, 50);
+			graphics.drawString(String.format("temp: %02f", pings[0].getTemp()), 10, 70);
+			graphics.drawString(String.format("track: %02f", 54*pings[0].getTrack()), 10, 90);
+			graphics.drawString(String.format("speed: %02f", pings[0].getSpeed()), 10, 110);
+			graphics.dispose();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}	

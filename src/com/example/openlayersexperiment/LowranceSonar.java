@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 /**
  * No public spec exists for Lowrance sonar format.
@@ -27,7 +26,7 @@ public class LowranceSonar {
 		DataInputStream datainput = new DataInputStream(new FileInputStream(file));
 		format = Integer.reverseBytes(datainput.readInt());		
 		blocksize = Integer.reverseBytes(datainput.readInt());
-		short wat = Short.reverseBytes(datainput.readShort());
+		Short.reverseBytes(datainput.readShort());
 		blocks = (file.length()-10) / blocksize;
 		datainput.close();
 	}
@@ -77,20 +76,6 @@ public class LowranceSonar {
 		
 		private byte[] soundings;
 		
-		private static final short WATERTEMP = 16 | 128;
-		private static final short WATERSPEED = 16 | 128;
-
-		private static final short LOWERLIMIT = 1024 | 2048 | 8192;
-		private static final short DEPTH = 1024 | 2048 | 8192;
-		private static final short SURFACEDEPTH = 1024 | 2048 | 8192;
-		private static final short TOPOFBOTTOMDEPTH = 1024 | 2048 | 8192;
-		private static final short TIMEOFFSET = 1024 | 2048 | 8192;
-
-		private static final short POSITION = 4 | 256 | 16384;
-		private static final short SPEED = 4 | 256 | 16384;
-		private static final short TRACK = 4 | 256 | 16384;
-		private static final short ALTITUDE = 4 | 256 | 16384;
-		
 		private static final double RAD_CONVERSION = 180/Math.PI;
 		private static final double EARTH_RADIUS = 6356752.3142;
 		private static final float FEET_TO_METERS = 0.3048f;
@@ -101,16 +86,14 @@ public class LowranceSonar {
 			long headerlen = 2;
 			mask = toBigEndianShort(inputstream.readShort());
 			
-			if(mask == 0x6D14) {
+			if(mask == 27924) {
 				headerlen += 48;
-				byte[] headers = new byte[48];
-				inputstream.read(headers, 0, 48);
+				byte[] headers =readBytes(inputstream, 48);
 				
 				lowLimit = toBigEndianFloat(headers, 0);
 				depth = toBigEndianFloat(headers, 4);
 				temp = toBigEndianFloat(headers, 8);
-				//waterSpeed = isPresent(WATERSPEED)?toBigEndianFloat(inputstream.readInt()):0;
-				
+			
 				positionY = toBigEndianInt(headers, 12);
 				positionX = toBigEndianInt(headers, 16);
 				
@@ -123,16 +106,113 @@ public class LowranceSonar {
 				altitude = toBigEndianFloat(headers, 40);
 				
 				rate = toBigEndianInt(headers, 44);
-				
 			}
-			
+			else if (mask == 27925) {
+				headerlen += 52;
+				
+				byte[] headers = readBytes(inputstream, 52);
+				
+				lowLimit = toBigEndianFloat(headers, 0);
+				depth = toBigEndianFloat(headers, 4);
+				temp = toBigEndianFloat(headers, 8);
+				positionY = toBigEndianInt(headers, 12);
+				positionX = toBigEndianInt(headers, 16);
+				
+				surfaceDepth = toBigEndianFloat(headers, 20);
+				topOfBottomDepth = toBigEndianFloat(headers, 24);
+				toBigEndianFloat(headers, 28);
+				
+				timeOffset = toBigEndianInt(headers, 32);
+				speed = toBigEndianFloat(headers, 36);
+				track = toBigEndianFloat(headers, 40);
+				altitude = toBigEndianFloat(headers, 44);				
+				rate = toBigEndianInt(headers, 48);
+				//System.out.println("surface1: "+surfaceDepth);
+			}
+			else if(mask == 27926) {
+				headerlen += 56;
+				byte[] headers = readBytes(inputstream, 56);
+				//printBytes(headers);
+				
+				lowLimit = toBigEndianFloat(headers, 0);
+				depth = toBigEndianFloat(headers, 4);
+				temp = toBigEndianFloat(headers, 8);
+				positionY = toBigEndianInt(headers, 12);
+				positionX = toBigEndianInt(headers, 16);
+				
+				surfaceDepth = toBigEndianFloat(headers, 20);
+				topOfBottomDepth = toBigEndianFloat(headers, 24);
+				toBigEndianFloat(headers, 28);
+				toBigEndianFloat(headers, 32);
+				timeOffset = toBigEndianInt(headers, 36);
+				speed = toBigEndianFloat(headers, 40);
+				track = toBigEndianFloat(headers, 44);
+				altitude = toBigEndianFloat(headers, 48);
+				//System.out.println("surface2: "+surfaceDepth);
+				
+				rate = toBigEndianInt(headers, 52);
+			}
+			else if(mask == 28436) {
+				headerlen += 48;
+				//printBytes(inputstream, 48);
+				
+				byte[] headers = readBytes(inputstream, 48);
+				
+				lowLimit = toBigEndianFloat(headers, 0);
+				depth = toBigEndianFloat(headers, 4);
+				temp = toBigEndianFloat(headers, 8);
+				positionY = toBigEndianInt(headers, 12);
+				positionX = toBigEndianInt(headers, 16);
+				surfaceDepth = toBigEndianFloat(headers, 20);
+				topOfBottomDepth = toBigEndianFloat(headers, 24);
+				
+				timeOffset = toBigEndianInt(headers, 28);
+				
+				speed = toBigEndianFloat(headers, 32);
+				track = toBigEndianFloat(headers, 36);
+				altitude = toBigEndianFloat(headers, 40);
+				
+				rate = toBigEndianInt(headers, 44);
+				
+				//System.out.println("surface3: "+surfaceDepth);
+				
+			} else {
+				System.out.println("unknown mask: "+mask);
+			}
+						
 			soundings = new byte[(int) (blocksize-headerlen)];
 			inputstream.read(soundings, 0, (int) (blocksize-headerlen));			
 		}
 		
+		private byte[] readBytes(DataInputStream stream, int len) throws IOException {
+			byte[] bytes = new byte[len];
+			stream.read(bytes, 0, len);
+			return bytes;
+		}
+
+		private void printBytes(byte[] bytes) {
+			System.out.println("mask: "+mask);
+			System.out.print("RAW: ");
+			for(int loop=0; loop < bytes.length; loop++) {
+				System.out.print(String.format("%02x ", bytes[loop]));
+			}
+			System.out.println("");
+			
+			System.out.print("int: ");
+			for(int loop=0; loop < bytes.length; loop+=4) {
+				System.out.print(String.format("%d ", toBigEndianInt(bytes, loop)));
+			}
+			System.out.println("");
+			
+			System.out.print("float: ");
+			for(int loop=0; loop < bytes.length; loop+=4) {
+				System.out.print(String.format("%f ", toBigEndianFloat(bytes, loop)));
+			}
+			System.out.println("");
+		}
+		
 		private int toBigEndianInt(byte[] raw, int offset) {
 			return 0xFF000000&(raw[offset+3]<<24) | 0x00FF0000&(raw[offset+2]<<16) | 0x0000FF00&(raw[offset+1]<<8) | 0x000000FF&raw[offset];
-			//return Integer.reverseBytes(littleendian);
 		}
 		
 		private float toBigEndianFloat(byte[] raw, int offset) {
@@ -143,11 +223,6 @@ public class LowranceSonar {
 			
 			return (short) (((0xFF00&littleendian)>>8)&0x00FF |
 					((0x00FF&littleendian)<<8)&0xFF00);
-			//return Short.reverseBytes(littleendian);
-		}
-		
-		private boolean isPresent(short field) {
-			return (field & mask) != 0;
 		}
 		
 		public float getDepth() {
@@ -169,6 +244,15 @@ public class LowranceSonar {
 		public byte[] getSoundings() {
 			return this.soundings;
 		}
+		
+		public float getLowLimit() {
+			return this.lowLimit*FEET_TO_METERS;
+		}
+		
+		public float getTrack() {
+			return this.track;
+		}
+
 		
 		/**
 		 * Convert Lowrance mercator meter format into WGS84.

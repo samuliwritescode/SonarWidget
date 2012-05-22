@@ -58,7 +58,15 @@ public class OpenlayersexperimentApplication extends Application {
 	
 	private void redraw(int index) {
 		layout.removeAllComponents();
-		LowranceSonar.Ping firstping = createSonarImage(index);
+		image = Main.createImage(this.sonar, index);
+		
+		LowranceSonar.Ping firstping;
+		try {
+			firstping = this.sonar.getPingRange(index, this.width)[0];
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		
 		layout.addComponent(
 			new Link(
 				"depth: "+firstping.getDepth()+
@@ -101,31 +109,5 @@ public class OpenlayersexperimentApplication extends Application {
 		}
     };
 
-
-	private LowranceSonar.Ping createSonarImage(int index) {
-		LowranceSonar.Ping retval = null;
-		try {
-			LowranceSonar.Ping[] pings = sonar.getPingRange(index, width);
-	
-			for(int loop=0; loop < width; loop++) {
-				if(retval == null) {
-					retval = pings[loop];
-				}
-				
-				byte[] soundings = pings[loop].getSoundings();
-				
-				for(int i=0; i < height; i++) {
-					byte sounding = soundings[i*(soundings.length/height)];
-					int color = (0xFF&sounding) |
-							(0xFF00&(sounding<<7)) |
-							(0xFF0000&(sounding<<17));
-					image.setRGB(loop, i, color);
-				}
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return retval;
-	}
 
 }
