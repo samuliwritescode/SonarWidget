@@ -12,12 +12,13 @@ import javax.imageio.ImageIO;
 import com.vaadin.Application;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.terminal.ExternalResource;
 import com.vaadin.terminal.StreamResource;
 import com.vaadin.ui.*;
 
 public class OpenlayersexperimentApplication extends Application {
-	private VerticalLayout layout;
+	private HorizontalLayout layout;
 	private LowranceSonar sonar;
 	private BufferedImage image;
 	
@@ -26,7 +27,10 @@ public class OpenlayersexperimentApplication extends Application {
 	public void init() {
 		Window mainWindow = new Window("Openlayersexperiment Application");
 
-		layout = new VerticalLayout();
+		Panel panel = new Panel();
+		layout = new HorizontalLayout();
+		layout.setSizeUndefined();
+		
 		try {
 			sonar = new LowranceSonar(new File("/Users/samuli/Documents/Sonar0011.slg"));
 		} catch (IOException e) {
@@ -34,12 +38,17 @@ public class OpenlayersexperimentApplication extends Application {
 			e.printStackTrace();
 		}
 		
-		Slider slider = new Slider(0, (int) sonar.getLength());
+		/*Slider slider = new Slider(0, (int) sonar.getLength());
 		slider.setWidth("100%");
-		mainWindow.addComponent(slider);
-		mainWindow.addComponent(layout);
+		mainWindow.addComponent(slider);*/
+		panel.setContent(layout);
+		panel.setScrollable(true);
+		panel.setSizeFull();
+		panel.setHeight("400px");
+		mainWindow.addComponent(panel);
 		
 		setMainWindow(mainWindow);
+		/*
 		redraw(0);
 		slider.addListener(new ValueChangeListener() {
 			
@@ -49,7 +58,41 @@ public class OpenlayersexperimentApplication extends Application {
 				redraw(index.intValue());
 			}
 		});
-		slider.setImmediate(true);
+		slider.setImmediate(true);*/
+
+		for(int index = 0; index < this.sonar.getLength(); index+=400) {
+			appendImage(index);
+		}
+	}
+	
+	private void appendImage(final int index) {
+		layout.addComponent(
+			new LazyLoadWrapper(
+				new Embedded(
+						"",
+						new StreamResource(
+							new StreamResource.StreamSource() {
+
+								@Override
+								public InputStream getStream() {
+									
+							        try {
+							        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
+							            ImageIO.write(Main.createImage(sonar, index), "png", imagebuffer);	           
+							            return  new ByteArrayInputStream(imagebuffer.toByteArray());
+							        } catch (IOException e) {
+							        	return null;
+							        }
+								}
+						    },
+							Double.toString(Math.random())+"image.png",
+							this
+						)
+				),
+				"400px",
+				"200px"
+			)
+		);
 	}
 	
 	private void redraw(int index) {
@@ -83,7 +126,7 @@ public class OpenlayersexperimentApplication extends Application {
 			new Embedded(
 					"",
 					new StreamResource(streamresource,
-							Double.toString(Math.random())+"image.jpg",
+							Double.toString(Math.random())+"image.png",
 							this
 					)
 			)
@@ -97,7 +140,7 @@ public class OpenlayersexperimentApplication extends Application {
 			
 	        try {
 	        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-	            ImageIO.write(image, "jpeg", imagebuffer);	           
+	            ImageIO.write(image, "png", imagebuffer);	           
 	            return  new ByteArrayInputStream(imagebuffer.toByteArray());
 	        } catch (IOException e) {
 	        	return null;

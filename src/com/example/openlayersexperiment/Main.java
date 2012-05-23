@@ -92,7 +92,7 @@ public class Main {
 				image.setRGB(loop, ((int)(pings[loop].getTimeStamp()*0.001)%(height)), 0x000000FF);
 				
 			}
-			Graphics graphics = image.getGraphics();
+			/*Graphics graphics = image.getGraphics();
 			graphics.setColor(Color.black);
 			graphics.drawString(String.format("depth: %02f", pings[0].getDepth()), 10, 10);
 			graphics.drawString(String.format("pos: %f lat, %f lon", pings[0].getLatitude(), pings[0].getLongitude()), 10, 30);
@@ -100,9 +100,9 @@ public class Main {
 			graphics.drawString(String.format("temp: %02f", pings[0].getTemp()), 10, 70);
 			graphics.drawString(String.format("track: %02f", 54*pings[0].getTrack()), 10, 90);
 			graphics.drawString(String.format("speed: %02f", pings[0].getSpeed()), 10, 110);
-			graphics.dispose();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+			graphics.dispose();*/
+		} catch (IOException e) {
+			return image;
 		}	
 		
 		return image;

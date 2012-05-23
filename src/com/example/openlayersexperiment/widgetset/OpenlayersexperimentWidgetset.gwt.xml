@@ -22,4 +22,6 @@
     <inherits name="org.vaadin.vol.VolWidgetsetWithHostedScript" />
     <inherits name="org.vaadin.hezamu.canvas.widgetset.CanvasWidgetset" />
 	<script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+
+    <inherits name="com.vaadin.lazyloadwrapper.widgetset.LazyLoadWrapperWidgetset" />
 </module>
