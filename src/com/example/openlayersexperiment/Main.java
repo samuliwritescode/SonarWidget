@@ -1,8 +1,6 @@
 package com.example.openlayersexperiment;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -82,9 +80,9 @@ public class Main {
 							(0xFF0000&(sounding<<16));
 					image.setRGB(loop, i, color);
 				}
-				image.setRGB(loop, (int)(height*pings[loop].getDepth()/pings[loop].getLowLimit()), 0x0000FF00);								
+				//image.setRGB(loop, (int)(height*pings[loop].getDepth()/pings[loop].getLowLimit()), 0x0000FF00);								
 			}
-			Graphics graphics = image.getGraphics();
+			/*Graphics graphics = image.getGraphics();
 			graphics.setColor(Color.black);
 			graphics.drawString(String.format("depth: %02f", pings[0].getDepth()), 10, 10);
 			graphics.drawString(String.format("pos: %f lat, %f lon", pings[0].getLatitude(), pings[0].getLongitude()), 10, 30);
@@ -92,7 +90,7 @@ public class Main {
 			graphics.drawString(String.format("temp: %02f", pings[0].getTemp()), 10, 70);
 			graphics.drawString(String.format("track: %02f", 54*pings[0].getTrack()), 10, 90);
 			graphics.drawString(String.format("speed: %02f", pings[0].getSpeed()), 10, 110);
-			graphics.dispose();
+			graphics.dispose();*/
 		} catch (IOException e) {
 			return image;
 		}	
