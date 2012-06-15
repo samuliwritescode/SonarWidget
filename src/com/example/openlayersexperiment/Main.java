@@ -43,14 +43,14 @@ public class Main {
 		JFrame frame = new JFrame("Sonar viewer");
 		
 		final JLabel label = new JLabel();
-		label.setIcon(new ImageIcon(createImage(sonar, 0)));
+		label.setIcon(new ImageIcon(createImage(sonar, 0, 600, 200)));
 		
 		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, (int) sonar.getLength(), 0);
 		slider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {				
 				JSlider c = (JSlider)arg0.getSource();
-				label.setIcon(new ImageIcon(createImage(sonar, c.getValue())));
+				label.setIcon(new ImageIcon(createImage(sonar, c.getValue(), 600, 200)));
 				
 			}});
 		
@@ -65,17 +65,11 @@ public class Main {
 		frame.setVisible(true);
 	}
 	
-	public static BufferedImage createImage(LowranceSonar sonar, int offset) {
-		int width = 400;
-		int height = 200;
+	public static BufferedImage createImage(LowranceSonar sonar, int offset, int width, int height) {
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_RGB);
 		
 		try {
 			LowranceSonar.Ping[] pings = sonar.getPingRange(offset, width);
-			
-			if(pings.length > 0) {
-				//System.out.println(pings[0].toString());
-			}
 	
 			for(int loop=0; loop < width; loop++) {
 				
@@ -88,11 +82,9 @@ public class Main {
 							(0xFF0000&(sounding<<16));
 					image.setRGB(loop, i, color);
 				}
-				image.setRGB(loop, (int)(height*pings[loop].getDepth()/pings[loop].getLowLimit()), 0x00FF0000);
-				image.setRGB(loop, ((int)(pings[loop].getTimeStamp()*0.001)%(height)), 0x000000FF);
-				
+				image.setRGB(loop, (int)(height*pings[loop].getDepth()/pings[loop].getLowLimit()), 0x0000FF00);								
 			}
-			/*Graphics graphics = image.getGraphics();
+			Graphics graphics = image.getGraphics();
 			graphics.setColor(Color.black);
 			graphics.drawString(String.format("depth: %02f", pings[0].getDepth()), 10, 10);
 			graphics.drawString(String.format("pos: %f lat, %f lon", pings[0].getLatitude(), pings[0].getLongitude()), 10, 30);
@@ -100,7 +92,7 @@ public class Main {
 			graphics.drawString(String.format("temp: %02f", pings[0].getTemp()), 10, 70);
 			graphics.drawString(String.format("track: %02f", 54*pings[0].getTrack()), 10, 90);
 			graphics.drawString(String.format("speed: %02f", pings[0].getSpeed()), 10, 110);
-			graphics.dispose();*/
+			graphics.dispose();
 		} catch (IOException e) {
 			return image;
 		}	

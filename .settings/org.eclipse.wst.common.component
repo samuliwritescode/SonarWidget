@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-modules id="moduleCoreId" project-version="1.5.0">
-    <wb-module deploy-name="OpenLayersExperiment">
+    <wb-module deploy-name="SonarWidget">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
-        <property name="context-root" value="OpenLayersExperiment"/>
-        <property name="java-output-path" value="/OpenLayersExperiment/build/classes"/>
+        <property name="java-output-path" value="/SonarWidget/build/classes"/>
+        <property name="context-root" value="SonarWidget"/>
     </wb-module>
 </project-modules>
