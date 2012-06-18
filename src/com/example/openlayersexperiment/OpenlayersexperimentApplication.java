@@ -16,12 +16,13 @@ public class OpenlayersexperimentApplication extends Application {
 		panel.setContent(layout);
 		panel.setScrollable(true);
 		panel.setSizeFull();
-		panel.setHeight("400px");
+		//panel.setHeight("100%");
 		mainWindow.setContent(new VerticalLayout());
 		mainWindow.addComponent(panel);
 		SonarWidget sonarWidget = new SonarWidget();
-		sonarWidget.setHeight("200px");
+		sonarWidget.setHeight("500px");
 		sonarWidget.setWidth("100%");
+
 		mainWindow.addComponent(sonarWidget);
 		
 		setMainWindow(mainWindow);	

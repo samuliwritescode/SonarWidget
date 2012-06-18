@@ -21,9 +21,10 @@ import com.vaadin.ui.ClientWidget;
 @ClientWidget(com.example.openlayersexperiment.widgetset.client.ui.VSonarWidget.class)
 public class SonarWidget extends AbstractComponent{
 
-	private int offset = 0;
 	private int length = 0;
+	private int windowheight = 0;
 	private LowranceSonar sonar;
+	private int offset;
 	
 	public SonarWidget() {
 		try {
@@ -32,15 +33,17 @@ public class SonarWidget extends AbstractComponent{
 		} catch (IOException e) {			
 			throw new RuntimeException(e);
 		}
-		
 
 	}
 	
 	@Override
 	public void paintContent(PaintTarget target) throws PaintException {
 		super.paintContent(target);
-		if(length != 0) {
+		
+		if(length != 0 && windowheight != 0) {
+			final int offset = this.offset;
 			String[] values = new String[length];
+			String[] depths = new String[length];
 			Ping[] pingRange = null;
 			try {
 				if(sonar.getLength() > (offset+length)) {
@@ -54,13 +57,13 @@ public class SonarWidget extends AbstractComponent{
 			}
 			
 			for(int loop=0; loop < length && loop < pingRange.length; loop++) {
-				values[loop] = Integer.toString((int)(100.0*pingRange[loop].getDepth()/pingRange[loop].getLowLimit()));			
+				values[loop] = Integer.toString((int)(windowheight*pingRange[loop].getDepth()/pingRange[loop].getLowLimit()));	
+				depths[loop] = Float.toString(pingRange[loop].getDepth());
 			}
-			
-			final int offset = this.offset;
 
-			target.addAttribute("totalwidth", sonar.getLength());
+			target.addAttribute("pingcount", sonar.getLength());
 			target.addAttribute("row", values);
+			target.addAttribute("depths", depths);
 			target.addAttribute("offset", offset);
 						
 			StreamResource streamResource = new StreamResource(new StreamSource() {
@@ -68,7 +71,7 @@ public class SonarWidget extends AbstractComponent{
 				public InputStream getStream() {
 			        try {
 			        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-			            ImageIO.write(Main.createImage(sonar, offset, length, 100), "png", imagebuffer);	           
+			            ImageIO.write(Main.createImage(sonar, offset, length, windowheight), "png", imagebuffer);	           
 			            return new ByteArrayInputStream(imagebuffer.toByteArray());
 			        } catch (IOException e) {
 			        	e.printStackTrace();
@@ -81,18 +84,24 @@ public class SonarWidget extends AbstractComponent{
 			);
 			
 			target.addAttribute("pic", streamResource);
-			
 		}
 	}
-	
+
 	@Override
 	public void changeVariables(Object source, Map<String, Object> variables) {
-		if(variables.containsKey("currentwindow")) {
-			Integer currentwindow = (Integer)variables.get("currentwindow");
-			offset = currentwindow.intValue();			
-			length = (Integer)variables.get("windowwidth");
-			requestRepaint();
+		if(variables.containsKey("windowwidth")) {
+			length = (Integer)variables.get("windowwidth");			
 		}
+		
+		if(variables.containsKey("windowheight")) {
+			windowheight = (Integer)variables.get("windowheight");
+		}
+		
+		if(variables.containsKey("currentwindow")) {			
+			this.offset = (Integer)variables.get("currentwindow");
+		}
+		
+		requestRepaint();
 		  
 	}
 }
