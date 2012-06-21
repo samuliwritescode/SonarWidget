@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
@@ -21,12 +23,13 @@ import com.vaadin.ui.ClientWidget;
 @ClientWidget(com.example.openlayersexperiment.widgetset.client.ui.VSonarWidget.class)
 public class SonarWidget extends AbstractComponent{
 
-	private int length = 0;
+	private int windowlength = 0;
 	private int windowheight = 0;
 	private LowranceSonar sonar;
-	private int offset;
+	private Queue<Integer> offsets;
 	
 	public SonarWidget() {
+		offsets = new LinkedList<Integer>();
 		try {
 			sonar = new LowranceSonar(new File("/Users/samuli/Documents/Sonar0011.slg"));
 			System.out.println(String.format("len: %d samples", sonar.getLength()));
@@ -40,14 +43,20 @@ public class SonarWidget extends AbstractComponent{
 	public void paintContent(PaintTarget target) throws PaintException {
 		super.paintContent(target);
 		
-		if(length != 0 && windowheight != 0) {
-			final int offset = this.offset;
-			String[] values = new String[length];
-			String[] depths = new String[length];
+		if(windowlength != 0 && windowheight != 0) {
+			final Integer offset = this.offsets.poll();
+			
+			if(offset == null) {
+				return;
+			}
+			
+			String[] lowlimits = new String[windowlength];
+			String[] depths = new String[windowlength];
+			String[] temps = new String[windowlength];
 			Ping[] pingRange = null;
 			try {
-				if(sonar.getLength() > (offset+length)) {
-					pingRange = sonar.getPingRange(offset, length);
+				if(sonar.getLength() > (offset+windowlength)) {
+					pingRange = sonar.getPingRange(offset, windowlength);
 				} else {
 					pingRange = sonar.getPingRange(offset, (int) (sonar.getLength()-offset));
 				}
@@ -56,14 +65,16 @@ public class SonarWidget extends AbstractComponent{
 				e.printStackTrace();
 			}
 			
-			for(int loop=0; loop < length && loop < pingRange.length; loop++) {
-				values[loop] = Integer.toString((int)(windowheight*pingRange[loop].getDepth()/pingRange[loop].getLowLimit()));	
-				depths[loop] = Float.toString(pingRange[loop].getDepth());
+			for(int loop=0; loop < windowlength && loop < pingRange.length; loop++) {
+				lowlimits[loop] = String.format("%.1f", pingRange[loop].getLowLimit());	
+				depths[loop] = String.format("%.1f", pingRange[loop].getDepth());
+				temps[loop] = String.format("%.1f", pingRange[loop].getTemp());
 			}
 
 			target.addAttribute("pingcount", sonar.getLength());
-			target.addAttribute("row", values);
+			target.addAttribute("lowlimits", lowlimits);
 			target.addAttribute("depths", depths);
+			target.addAttribute("temps", temps);
 			target.addAttribute("offset", offset);
 						
 			StreamResource streamResource = new StreamResource(new StreamSource() {
@@ -71,7 +82,7 @@ public class SonarWidget extends AbstractComponent{
 				public InputStream getStream() {
 			        try {
 			        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-			            ImageIO.write(Main.createImage(sonar, offset, length, windowheight), "png", imagebuffer);	           
+			            ImageIO.write(Main.createImage(sonar, offset, windowlength, windowheight), "png", imagebuffer);	           
 			            return new ByteArrayInputStream(imagebuffer.toByteArray());
 			        } catch (IOException e) {
 			        	e.printStackTrace();
@@ -90,7 +101,7 @@ public class SonarWidget extends AbstractComponent{
 	@Override
 	public void changeVariables(Object source, Map<String, Object> variables) {
 		if(variables.containsKey("windowwidth")) {
-			length = (Integer)variables.get("windowwidth");			
+			windowlength = (Integer)variables.get("windowwidth");			
 		}
 		
 		if(variables.containsKey("windowheight")) {
@@ -98,7 +109,7 @@ public class SonarWidget extends AbstractComponent{
 		}
 		
 		if(variables.containsKey("currentwindow")) {			
-			this.offset = (Integer)variables.get("currentwindow");
+			this.offsets.add((Integer)variables.get("currentwindow"));
 		}
 		
 		requestRepaint();

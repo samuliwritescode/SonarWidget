@@ -20,7 +20,7 @@ public class OpenlayersexperimentApplication extends Application {
 		mainWindow.setContent(new VerticalLayout());
 		mainWindow.addComponent(panel);
 		SonarWidget sonarWidget = new SonarWidget();
-		sonarWidget.setHeight("500px");
+		sonarWidget.setHeight("300px");
 		sonarWidget.setWidth("100%");
 
 		mainWindow.addComponent(sonarWidget);

@@ -7,7 +7,9 @@ import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.ImageElement;
+import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Position;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.dom.client.ScrollEvent;
@@ -29,52 +31,52 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private List<Canvas> canvases;
 	private List<String> drawn;
 	private String[] depths;
-	private int width = 0;
-	private int height = 0;
-	private Label legend;
+	private String[] temps;
+	private int tilewidth = 400;
+	private int height = 400;
+	private Label depthlabel;
+	private Label templabel;
 
 	public VSonarWidget() {
 		super();
 		this.canvases = new ArrayList<Canvas>();
 		this.drawn = new ArrayList<String>();
-		this.legend = new Label();
-		this.legend.getElement().getStyle().setPosition(Position.FIXED);
-		this.legend.setText("Depth: ");
+		this.depthlabel = new Label();
+		this.depthlabel.getElement().getStyle().setPosition(Position.FIXED);
+		this.depthlabel.setText("Depth: ");
+		
+		this.templabel = new Label();
+		this.templabel.getElement().getStyle().setPosition(Position.FIXED);
+		this.templabel.getElement().getStyle().setMarginTop(20, Unit.PX);
+		this.templabel.setText("Temp: ");
 
 		vert = new HorizontalPanel();
-		add(vert);
-		vert.add(legend);
+		vert.setHeight("100%");
+		//setHeight("100%");
+		
+		setWidget(vert);
+		vert.add(depthlabel);
+		vert.add(templabel);
+		getElement().getStyle().setOverflowX(Overflow.AUTO);
+		getElement().getStyle().setOverflowY(Overflow.HIDDEN);
 
 		addScrollHandler(this);
-		setAlwaysShowScrollBars(false);
 	}
 	
-	
-	private void setSizes() {
-		if(getOffsetHeight()+20 != this.height) {
-			this.height = getOffsetHeight()-20;
-			this.drawn.clear();
-			this.canvases.clear();
-		}
-		
-		if(getOffsetWidth() != this.width) {
-			this.width = getOffsetWidth();
-			this.drawn.clear();
-			this.canvases.clear();
-		}
-	}
-	
-	private void updateSize(int width) {
+	private void initialize(int width) {		
 		vert.clear();
 		vert.setWidth(width+"px");
-		vert.setHeight(this.height+"px");
-		vert.add(legend);
+		//vert.setHeight(this.height+"px");
+		vert.add(depthlabel);
+		vert.add(templabel);
 		depths = new String[width];
-		for(int loop=0; loop < width; loop+=this.width) {
+		temps = new String[width];
+		for(int loop=0; loop < width; loop+=this.tilewidth) {
 			Canvas canvas = Canvas.createIfSupported();
 			canvas.setCoordinateSpaceHeight(this.height);
-			canvas.setCoordinateSpaceWidth(this.width);
-			canvas.setWidth(this.width+"px");
+			canvas.setCoordinateSpaceWidth(this.tilewidth);
+			canvas.setWidth(this.tilewidth+"px");
+			//canvas.setHeight("100%");
 			canvas.setHeight(this.height+"px");
 			this.canvases.add(canvas);
 			vert.add(canvas);
@@ -82,14 +84,18 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 	
 	private void getData(int offset) {
-		int normalizedoffset = offset-offset%width;
-		if(this.drawn.contains(new Integer(normalizedoffset).toString())) {
-			return;
-		}
+		int normalizedoffset = offset-offset%tilewidth;
 		
-		client.updateVariable(uid, "currentwindow", normalizedoffset, false);
-		client.updateVariable(uid , "windowwidth", width, false);
-		client.updateVariable(uid , "windowheight", height, true);
+		for(int loop = normalizedoffset; loop < normalizedoffset+getOffsetWidth()+this.tilewidth; loop+= this.tilewidth) {
+			if(this.drawn.contains(new Integer(loop).toString())) {
+				continue;
+			} else {
+				this.drawn.add(new Integer(loop).toString());
+			}
+			client.updateVariable(uid, "windowheight", height, false);
+			client.updateVariable(uid, "windowwidth", tilewidth, false);
+			client.updateVariable(uid, "currentwindow", loop, true);
+		}
 	}
 
 	@Override
@@ -101,40 +107,47 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		}
 		this.client = client;
 		this.uid = uidl.getId();
-		setSizes();
 		
-		if(!uidl.hasAttribute("pingcount")) {
+		this.height = getOffsetHeight();
+		
+		if(this.drawn.isEmpty()) {
 			getData(0);
 			return;
-		}
-		
+		}		
+
 		if(this.canvases.isEmpty() && uidl.hasAttribute("pingcount")) {
-			updateSize(uidl.getIntAttribute("pingcount"));
+			initialize(uidl.getIntAttribute("pingcount"));
 		}
 
 		if(uidl.hasAttribute("offset")) {
 			int offset = uidl.getIntAttribute("offset");
-			this.drawn.add(new Integer(offset).toString());
-			Canvas canvas = this.canvases.get((int)(offset/width));
+
+			Canvas canvas = this.canvases.get((int)(offset/tilewidth));
 			final Context2d context = canvas.getContext2d();
-			context.clearRect(0, 0, width, height);
+			context.clearRect(0, 0, tilewidth, height);
 			
 			if(uidl.hasAttribute("pic")) {
 				drawBitmap(uidl, context);	
 			}
 		
-			if(uidl.hasAttribute("row")) {
+			if(uidl.hasAttribute("lowlimits")) {
 				drawOverlay(uidl, context);
 			}
 			
 			if(uidl.hasAttribute("depths")) {
-				String[] slice = uidl.getStringArrayAttribute("depths");
-				for(int loop=offset; loop < offset+slice.length; loop++) {
-					this.depths[loop] = slice[loop-offset];
-				}
-				
+				fillArray(uidl.getStringArrayAttribute("depths"), this.depths, offset);			
+			}
+			
+			if(uidl.hasAttribute("temps")) {
+				fillArray(uidl.getStringArrayAttribute("temps"), this.temps, offset);				
 			}
 		}
+	}
+	
+	private void fillArray(String[] slice, String[] array, int offset) {
+		for(int loop=offset; loop < offset+slice.length; loop++) {
+			array[loop] = slice[loop-offset];
+		}	
 	}
 
 	private void drawBitmap(final UIDL uidl, final Context2d context) {
@@ -153,25 +166,31 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 
 	private void drawOverlay(final UIDL uidl, final Context2d context) {
-		String[] row = uidl.getStringArrayAttribute("row");
+		String[] lowlimits = uidl.getStringArrayAttribute("lowlimits");
+		String[] depths = uidl.getStringArrayAttribute("depths");
 
 		context.setStrokeStyle("red");
 		context.beginPath();
-		for(int loop=0; loop < row.length; loop++) {
-			int value = new Integer(row[loop]).intValue();
+		for(int loop=0; loop < depths.length; loop++) {
+			float depth = new Float(depths[loop]).floatValue();
+			float lowlimit = new Float(lowlimits[loop]).floatValue();
 			if(loop==0) {
-				context.moveTo(loop, value);
+				context.moveTo(loop, this.height*depth/lowlimit);
 			} else {
-				context.lineTo(loop, value);
+				context.lineTo(loop, this.height*depth/lowlimit);
 			}
 		}
 		context.stroke();
 	}
-
+	
 	@Override
 	public void onScroll(ScrollEvent event) {
 		if(this.depths != null && this.depths.length > getHorizontalScrollPosition()) {
-			this.legend.setText("Depth: "+this.depths[getHorizontalScrollPosition()]);
+			this.depthlabel.setText("Depth: "+this.depths[getHorizontalScrollPosition()]);
+		}
+		
+		if(this.temps != null && this.temps.length > getHorizontalScrollPosition()) {
+			this.templabel.setText("Temp: "+this.temps[getHorizontalScrollPosition()]);
 		}
 		
 		getData(getHorizontalScrollPosition());		
