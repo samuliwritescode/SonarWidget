@@ -14,6 +14,7 @@ import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -159,8 +160,22 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			
 			@Override
 			public void onLoad(LoadEvent event) {
-				context.drawImage(ImageElement.as(image.getElement()), 0, 0);
-				drawOverlay(uidl, context);
+				context.setGlobalAlpha(0);
+				new Timer() {
+					private int alpha = 0;
+					@Override
+					public void run() {
+						
+						if(alpha >= 10) {
+							this.cancel();
+						}
+						
+						context.setGlobalAlpha(alpha*0.1);
+						context.drawImage(ImageElement.as(image.getElement()), 0, 0);
+						drawOverlay(uidl, context);
+						alpha++;
+					}
+				}.scheduleRepeating(24);
 			}
 		});
 	}
