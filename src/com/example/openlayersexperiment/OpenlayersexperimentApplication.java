@@ -9,6 +9,7 @@ public class OpenlayersexperimentApplication extends Application {
 	
 	@Override
 	public void init() {
+		setTheme("sonar");
 		final Window mainWindow = new Window("Openlayersexperiment Application");
 
 		layout = new HorizontalLayout();
@@ -27,10 +28,10 @@ public class OpenlayersexperimentApplication extends Application {
 			}
 		});
 		
-		layout.addComponent(button);
+		//layout.addComponent(button);
 		layout.addComponent(sonarWidget);
 
-		sonarWidget.setHeight("200px");
+		sonarWidget.setHeight("600px");
 		sonarWidget.setWidth("100%");
 
 		

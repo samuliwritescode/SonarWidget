@@ -22,6 +22,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.vaadin.terminal.gwt.client.ApplicationConnection;
 import com.vaadin.terminal.gwt.client.Paintable;
 import com.vaadin.terminal.gwt.client.UIDL;
@@ -42,6 +43,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private Label templabel;
 	private boolean overlay;
 	private Canvas ruler;
+	private VerticalPanel labels;
 
 	public VSonarWidget() {
 		super();
@@ -49,21 +51,22 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		
 		this.drawn = new ArrayList<String>();
 		this.depthlabel = new Label();
-		this.depthlabel.getElement().getStyle().setPosition(Position.FIXED);
 		this.depthlabel.setText("Depth: ");
 		
 		this.templabel = new Label();
-		this.templabel.getElement().getStyle().setPosition(Position.FIXED);
-		this.templabel.getElement().getStyle().setMarginTop(20, Unit.PX);
 		this.templabel.setText("Temp: ");
 
 		vert = new HorizontalPanel();
 		vert.setHeight("100%");
-		//setHeight("100%");
 		
+		labels = new VerticalPanel();
+		labels.getElement().getStyle().setPosition(Position.FIXED);
+		labels.setStyleName("v-sonarwidget-labels");
+
 		setWidget(vert);
-		vert.add(depthlabel);
-		vert.add(templabel);
+		vert.add(labels);
+		labels.add(depthlabel);
+		labels.add(templabel);
 		getElement().getStyle().setOverflowX(Overflow.AUTO);
 		getElement().getStyle().setOverflowY(Overflow.HIDDEN);
 
@@ -74,27 +77,28 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private void initialize(int width) {		
 		vert.clear();
 		vert.setWidth(width+"px");
-		//vert.setHeight(this.height+"px");
-		vert.add(depthlabel);
-		vert.add(templabel);
+		vert.add(labels);
+		
 		depths = new String[width];
 		temps = new String[width];
 		lowlimits = new String[width];
 		this.ruler = Canvas.createIfSupported();
 		this.ruler.setCoordinateSpaceHeight(this.height);
 		this.ruler.setCoordinateSpaceWidth(1);
+		this.ruler.setWidth("1px");
+		this.ruler.setHeight(this.height+"px");
 		this.ruler.getElement().getStyle().setPosition(Position.FIXED);
+		
 		Context2d context2d = this.ruler.getContext2d();
-		context2d.setStrokeStyle("blue");
+		context2d.setFillStyle("blue");
 		context2d.fillRect(0, 0, 1, this.height);
-		context2d.fill();
+
 		vert.add(ruler);
 		for(int loop=0; loop < width; loop+=this.tilewidth) {
 			Canvas canvas = Canvas.createIfSupported();
 			canvas.setCoordinateSpaceHeight(this.height);
 			canvas.setCoordinateSpaceWidth(this.tilewidth);
 			canvas.setWidth(this.tilewidth+"px");
-			//canvas.setHeight("100%");
 			canvas.setHeight(this.height+"px");
 			this.canvases.add(canvas);
 			vert.add(canvas);
@@ -223,14 +227,13 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	
 	@Override
 	public void onScroll(ScrollEvent event) {
-
-		
 		getData(getHorizontalScrollPosition());		
 	}
 	
 	private void onMouseHover(int coordinate) {
 				
 		this.ruler.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
+		this.labels.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
 		
 		if(this.depths != null && this.depths.length > coordinate) {
 			this.depthlabel.setText("Depth: "+this.depths[coordinate]);
