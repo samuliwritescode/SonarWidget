@@ -27,6 +27,7 @@ public class SonarWidget extends AbstractComponent{
 	private int windowheight = 0;
 	private LowranceSonar sonar;
 	private Queue<Integer> offsets;
+	private boolean overlay = true;
 	
 	public SonarWidget() {
 		offsets = new LinkedList<Integer>();
@@ -43,6 +44,7 @@ public class SonarWidget extends AbstractComponent{
 	public void paintContent(PaintTarget target) throws PaintException {
 		super.paintContent(target);
 		
+		target.addAttribute("overlay", overlay);
 		if(windowlength != 0 && windowheight != 0) {
 			final Integer offset = this.offsets.poll();
 			
@@ -75,6 +77,8 @@ public class SonarWidget extends AbstractComponent{
 			target.addAttribute("lowlimits", lowlimits);
 			target.addAttribute("depths", depths);
 			target.addAttribute("temps", temps);
+
+			
 			target.addAttribute("offset", offset);
 						
 			StreamResource streamResource = new StreamResource(new StreamSource() {
@@ -114,5 +118,10 @@ public class SonarWidget extends AbstractComponent{
 		
 		requestRepaint();
 		  
+	}
+
+	public void setOverlay(boolean booleanValue) {
+		this.overlay = booleanValue;
+		requestRepaint();
 	}
 }
