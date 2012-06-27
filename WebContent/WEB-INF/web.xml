@@ -14,13 +14,13 @@
 			<description>
 			Vaadin application class to start</description>
 			<param-name>application</param-name>
-			<param-value>com.example.openlayersexperiment.OpenlayersexperimentApplication</param-value>
+			<param-value>com.vaadin.sonarwidget.OpenlayersexperimentApplication</param-value>
 		</init-param>
 		<init-param>
 			<description>
 			Application widgetset</description>
 			<param-name>widgetset</param-name>
-			<param-value>com.example.openlayersexperiment.widgetset.OpenlayersexperimentWidgetset</param-value>
+			<param-value>com.vaadin.sonarwidget.widgetset.OpenlayersexperimentWidgetset</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>

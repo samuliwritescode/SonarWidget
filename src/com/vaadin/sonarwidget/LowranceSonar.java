@@ -1,4 +1,4 @@
-package com.example.openlayersexperiment;
+package com.vaadin.sonarwidget;
 
 import java.io.DataInputStream;
 import java.io.File;

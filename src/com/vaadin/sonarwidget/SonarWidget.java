@@ -1,4 +1,4 @@
-package com.example.openlayersexperiment;
+package com.vaadin.sonarwidget;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,7 +12,7 @@ import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
-import com.example.openlayersexperiment.LowranceSonar.Ping;
+import com.vaadin.sonarwidget.LowranceSonar.Ping;
 import com.vaadin.terminal.PaintException;
 import com.vaadin.terminal.PaintTarget;
 import com.vaadin.terminal.StreamResource;
@@ -20,7 +20,7 @@ import com.vaadin.terminal.StreamResource.StreamSource;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.ClientWidget;
 
-@ClientWidget(com.example.openlayersexperiment.widgetset.client.ui.VSonarWidget.class)
+@ClientWidget(com.vaadin.sonarwidget.widgetset.client.ui.VSonarWidget.class)
 public class SonarWidget extends AbstractComponent{
 
 	private int windowlength = 0;
@@ -29,11 +29,10 @@ public class SonarWidget extends AbstractComponent{
 	private Queue<Integer> offsets;
 	private boolean overlay = true;
 	
-	public SonarWidget() {
+	public SonarWidget(File file) {
 		offsets = new LinkedList<Integer>();
 		try {
-			sonar = new LowranceSonar(new File("/Users/samuli/Documents/Sonar0011.slg"));
-			System.out.println(String.format("len: %d samples", sonar.getLength()));
+			sonar = new LowranceSonar(file);
 		} catch (IOException e) {			
 			throw new RuntimeException(e);
 		}

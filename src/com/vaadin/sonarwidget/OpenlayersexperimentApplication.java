@@ -1,4 +1,6 @@
-package com.example.openlayersexperiment;
+package com.vaadin.sonarwidget;
+import java.io.File;
+
 import com.vaadin.Application;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -9,13 +11,12 @@ public class OpenlayersexperimentApplication extends Application {
 	
 	@Override
 	public void init() {
-		setTheme("sonar");
 		final Window mainWindow = new Window("Openlayersexperiment Application");
 
 		layout = new HorizontalLayout();
 		layout.setSizeFull();
 
-		final SonarWidget sonarWidget = new SonarWidget();
+		final SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/Documents/Sonar0011.slg"));
 		final CheckBox button = new CheckBox("click");
 		button.setImmediate(true);
 		button.setValue(Boolean.TRUE);

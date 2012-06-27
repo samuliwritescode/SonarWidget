@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
 Class-Path: 
-
+Vaadin-Package-Version: 1
+Vaadin-Widgetsets: com.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset

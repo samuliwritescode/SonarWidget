@@ -1,4 +1,4 @@
-package com.example.openlayersexperiment.widgetset.client.ui;
+package com.vaadin.sonarwidget.widgetset.client.ui;
 
 import java.util.ArrayList;
 import java.util.List;

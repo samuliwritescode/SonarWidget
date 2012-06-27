@@ -1,4 +1,4 @@
-package com.example.openlayersexperiment;
+package com.vaadin.sonarwidget;
 
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
@@ -13,7 +13,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.example.openlayersexperiment.LowranceSonar.Ping;
+import com.vaadin.sonarwidget.LowranceSonar.Ping;
 
 
 
