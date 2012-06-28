@@ -95,7 +95,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 
 	
-	private void getData(int offset) {
+	private void getSonarData(int offset) {
 		int normalizedoffset = offset-offset%tilewidth;
 		
 		for(int loop = normalizedoffset; loop < normalizedoffset+getOffsetWidth()+this.tilewidth; loop+= this.tilewidth) {
@@ -121,7 +121,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		this.uid = uidl.getId();
 		
 		if(this.drawn.isEmpty()) {
-			getData(0);
+			getSonarData(0);
 			return;
 		}		
 
@@ -167,7 +167,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 
 	private void drawBitmap(final int offset, final String name, final Context2d context) {
-		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(5));
+		final Image image = new Image(GWT.getHostPageBaseURL()+"/"+name.substring(5));
 		RootPanel.get().add(image);
 		image.setVisible(false);
 		image.addLoadHandler(new LoadHandler() {
@@ -238,21 +238,24 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	
 	@Override
 	public void onScroll(ScrollEvent event) {
-		getData(getHorizontalScrollPosition());		
+		getSonarData(getHorizontalScrollPosition());		
 	}
 	
 	private void onMouseHover(int coordinate) {
-		updateRuler(coordinate);
-		
+		updateRuler(coordinate);		
+		updateLabels(coordinate);
+	}
+
+	private void updateLabels(int coordinate) {
 		this.labels.setVisible(true);
 		this.labels.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
 		
 		if(this.depths != null && this.depths.length > coordinate) {
-			this.depthlabel.setText("Depth: "+this.depths[coordinate]);
+			this.depthlabel.setText("Depth: "+this.depths[coordinate]+" m");
 		}
 		
 		if(this.temps != null && this.temps.length > coordinate) {
-			this.templabel.setText("Temp: "+this.temps[coordinate]);
+			this.templabel.setText("Temp: "+this.temps[coordinate]+" C");
 		}
 	}
 	

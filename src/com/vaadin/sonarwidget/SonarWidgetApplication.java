@@ -6,12 +6,12 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.ui.*;
 
-public class OpenlayersexperimentApplication extends Application {
+public class SonarWidgetApplication extends Application {
 	private HorizontalLayout layout;
 	
 	@Override
 	public void init() {
-		final Window mainWindow = new Window("Openlayersexperiment Application");
+		final Window mainWindow = new Window("Sonarwidget Application");
 
 		layout = new HorizontalLayout();
 		layout.setSizeFull();

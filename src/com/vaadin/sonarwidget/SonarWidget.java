@@ -1,5 +1,6 @@
 package com.vaadin.sonarwidget;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -89,7 +90,7 @@ public class SonarWidget extends AbstractComponent{
 				public InputStream getStream() {
 			        try {
 			        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-			            ImageIO.write(Main.createImage(sonar, frame.offset, frame.width, frame.height), "png", imagebuffer);	           
+			            ImageIO.write(createImage(sonar, frame.offset, frame.width, frame.height), "png", imagebuffer);	           
 			            return new ByteArrayInputStream(imagebuffer.toByteArray());
 			        } catch (IOException e) {
 			        	e.printStackTrace();
@@ -127,5 +128,31 @@ public class SonarWidget extends AbstractComponent{
 	public void setOverlay(boolean booleanValue) {
 		this.overlay = booleanValue;
 		requestRepaint();
+	}
+	
+	private BufferedImage createImage(LowranceSonar sonar, int offset, int width, int height) {
+		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_RGB);
+		
+		try {
+			LowranceSonar.Ping[] pings = sonar.getPingRange(offset, width);
+	
+			for(int loop=0; loop < width; loop++) {
+				
+				byte[] soundings = pings[loop].getSoundings();
+				
+				for(int i=0; i < height; i++) {
+					int mapped = (int)((i*soundings.length)/(double)height);
+					byte sounding = soundings[mapped];
+					int color = (0xFF&sounding) |
+							(0xFF00&(sounding<<8)) |
+							(0xFF0000&(sounding<<16));
+					image.setRGB(loop, i, color);
+				}								
+			}
+		} catch (IOException e) {
+			return image;
+		}	
+		
+		return image;
 	}
 }
