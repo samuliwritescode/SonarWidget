@@ -14,6 +14,7 @@ import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
+import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
@@ -40,6 +41,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private int tilewidth = 400;
 	private Label depthlabel;
 	private Label templabel;
+	private Label cursorlabel;
 	private boolean overlay;
 	private Canvas ruler;
 	private VerticalPanel labels;
@@ -50,6 +52,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		this.drawn = new ArrayList<String>();
 		this.depthlabel = new Label();
 		this.templabel = new Label();
+		this.cursorlabel = new Label();
 		vert = new HorizontalPanel();
 		vert.setHeight("100%");
 		
@@ -60,6 +63,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		setWidget(vert);
 		vert.add(labels);
 		labels.add(depthlabel);
+		labels.add(cursorlabel);
 		labels.add(templabel);
 		getElement().getStyle().setOverflowX(Overflow.AUTO);
 		getElement().getStyle().setOverflowY(Overflow.HIDDEN);
@@ -241,17 +245,20 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		getSonarData(getHorizontalScrollPosition());		
 	}
 	
-	private void onMouseHover(int coordinate) {
+	private void onMouseHover(int coordinate, int coordinateY) {
 		updateRuler(coordinate);		
-		updateLabels(coordinate);
+		updateLabels(coordinate, coordinateY);
 	}
 
-	private void updateLabels(int coordinate) {
+	private void updateLabels(int coordinate, int coordinateY) {
 		this.labels.setVisible(true);
 		this.labels.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
 		
 		if(this.depths != null && this.depths.length > coordinate) {
-			this.depthlabel.setText("Depth: "+this.depths[coordinate]+" m");
+			this.depthlabel.setText("Depth: "+this.depths[coordinate]+" m");			
+			float lowlimit = new Float(lowlimits[coordinate]).floatValue();
+			float cursor = lowlimit*(coordinateY/(float)getElement().getClientHeight());
+			this.cursorlabel.setText("Cursor: "+NumberFormat.getFormat("#.0 m").format(cursor));
 		}
 		
 		if(this.temps != null && this.temps.length > coordinate) {
@@ -263,7 +270,8 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	public void onBrowserEvent(Event event) {
 		switch(DOM.eventGetType(event)) {
 		case Event.ONMOUSEMOVE:
-			onMouseHover(event.getClientX()-getAbsoluteLeft()+getHorizontalScrollPosition());
+			onMouseHover(event.getClientX()-getAbsoluteLeft()+getHorizontalScrollPosition(),
+					event.getClientY()-getAbsoluteTop());
 			break;
 		default:
 			super.onBrowserEvent(event);
