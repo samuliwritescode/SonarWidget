@@ -38,7 +38,6 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private String[] temps;
 	private String[] lowlimits;
 	private int tilewidth = 400;
-	private int height = 400;
 	private Label depthlabel;
 	private Label templabel;
 	private boolean overlay;
@@ -48,14 +47,9 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	public VSonarWidget() {
 		super();
 		this.canvases = new ArrayList<Canvas>();
-		
 		this.drawn = new ArrayList<String>();
 		this.depthlabel = new Label();
-		this.depthlabel.setText("Depth: ");
-		
 		this.templabel = new Label();
-		this.templabel.setText("Temp: ");
-
 		vert = new HorizontalPanel();
 		vert.setHeight("100%");
 		
@@ -69,9 +63,11 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		labels.add(templabel);
 		getElement().getStyle().setOverflowX(Overflow.AUTO);
 		getElement().getStyle().setOverflowY(Overflow.HIDDEN);
+		this.ruler = Canvas.createIfSupported();
+		this.ruler.getElement().getStyle().setPosition(Position.FIXED);
 
-		addScrollHandler(this);
 		sinkEvents(Event.ONMOUSEMOVE);
+		addScrollHandler(this);
 	}
 	
 	private void initialize(int width) {		
@@ -82,28 +78,22 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		depths = new String[width];
 		temps = new String[width];
 		lowlimits = new String[width];
-		this.ruler = Canvas.createIfSupported();
-		this.ruler.setCoordinateSpaceHeight(this.height);
-		this.ruler.setCoordinateSpaceWidth(1);
-		this.ruler.setWidth("1px");
-		this.ruler.setHeight(this.height+"px");
-		this.ruler.getElement().getStyle().setPosition(Position.FIXED);
 		
-		Context2d context2d = this.ruler.getContext2d();
-		context2d.setFillStyle("blue");
-		context2d.fillRect(0, 0, 1, this.height);
-
 		vert.add(ruler);
+		
+		labels.setVisible(false);
+		ruler.setVisible(false);
 		for(int loop=0; loop < width; loop+=this.tilewidth) {
 			Canvas canvas = Canvas.createIfSupported();
-			canvas.setCoordinateSpaceHeight(this.height);
-			canvas.setCoordinateSpaceWidth(this.tilewidth);
-			canvas.setWidth(this.tilewidth+"px");
-			canvas.setHeight(this.height+"px");
 			this.canvases.add(canvas);
 			vert.add(canvas);
+			canvas.setCoordinateSpaceHeight(getElement().getClientHeight());
+			canvas.setCoordinateSpaceWidth(this.tilewidth);
+			canvas.setWidth(this.tilewidth+"px");
+			canvas.setHeight(getElement().getClientHeight()+"px");
 		}
 	}
+
 	
 	private void getData(int offset) {
 		int normalizedoffset = offset-offset%tilewidth;
@@ -114,7 +104,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			} else {
 				this.drawn.add(new Integer(loop).toString());
 			}
-			client.updateVariable(uid, "windowheight", height, false);
+			client.updateVariable(uid, "windowheight", getElement().getClientHeight(), false);
 			client.updateVariable(uid, "windowwidth", tilewidth, false);
 			client.updateVariable(uid, "currentwindow", loop, true);
 		}
@@ -129,8 +119,6 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		}
 		this.client = client;
 		this.uid = uidl.getId();
-		
-		this.height = getOffsetHeight();
 		
 		if(this.drawn.isEmpty()) {
 			getData(0);
@@ -150,7 +138,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 
 			Canvas canvas = this.canvases.get((int)(offset/tilewidth));
 			final Context2d context = canvas.getContext2d();
-			context.clearRect(0, 0, tilewidth, height);
+			context.clearRect(0, 0, tilewidth, canvas.getCoordinateSpaceHeight());
 			
 			if(uidl.hasAttribute("lowlimits")) {
 				fillArray(uidl.getStringArrayAttribute("lowlimits"), this.lowlimits, offset);			
@@ -197,7 +185,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 						}
 						
 						context.setGlobalAlpha(alpha*0.1);
-						context.drawImage(ImageElement.as(image.getElement()), 0, 0);
+						context.drawImage(ImageElement.as(image.getElement()), 0, 0, tilewidth, getElement().getClientHeight());
 						drawOverlay(offset, context);
 						alpha++;
 					}
@@ -217,12 +205,35 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			float depth = new Float(depths[loop]).floatValue();
 			float lowlimit = new Float(lowlimits[loop]).floatValue();
 			if(loop-offset==0) {
-				context.moveTo(loop-offset, this.height*depth/lowlimit);
+				context.moveTo(loop-offset, getElement().getClientHeight()*depth/lowlimit);
 			} else {
-				context.lineTo(loop-offset, this.height*depth/lowlimit);
+				context.lineTo(loop-offset, getElement().getClientHeight()*depth/lowlimit);
 			}
 		}
 		context.stroke();
+	}
+	
+	
+	private void updateRuler(int coordinate) {
+		this.ruler.setVisible(true);
+		int height = getElement().getClientHeight();
+		this.ruler.setCoordinateSpaceHeight(height);
+		this.ruler.setCoordinateSpaceWidth(10);
+		this.ruler.setWidth("10px");
+		this.ruler.setHeight(height+"px");
+		
+		Context2d context2d = this.ruler.getContext2d();
+		context2d.setFillStyle("blue");
+		context2d.fillRect(0, 0, 1, height);
+		float depth = new Float(depths[coordinate]).floatValue();
+		float lowlimit = new Float(lowlimits[coordinate]).floatValue();
+		int drawdepth = (int) (height*depth/lowlimit);
+		context2d.moveTo(10, drawdepth-10);
+		context2d.lineTo(1, drawdepth);
+		context2d.lineTo(10, drawdepth+10);
+		context2d.stroke();
+		
+		this.ruler.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
 	}
 	
 	@Override
@@ -231,8 +242,9 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 	
 	private void onMouseHover(int coordinate) {
-				
-		this.ruler.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
+		updateRuler(coordinate);
+		
+		this.labels.setVisible(true);
 		this.labels.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
 		
 		if(this.depths != null && this.depths.length > coordinate) {
@@ -242,16 +254,16 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		if(this.temps != null && this.temps.length > coordinate) {
 			this.templabel.setText("Temp: "+this.temps[coordinate]);
 		}
-		
 	}
-	
 	
 	@Override
 	public void onBrowserEvent(Event event) {
-		super.onBrowserEvent(event);
 		switch(DOM.eventGetType(event)) {
 		case Event.ONMOUSEMOVE:
 			onMouseHover(event.getClientX()-getAbsoluteLeft()+getHorizontalScrollPosition());
+			break;
+		default:
+			super.onBrowserEvent(event);
 			break;
 		}
 	}

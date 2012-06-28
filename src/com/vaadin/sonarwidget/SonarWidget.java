@@ -23,14 +23,18 @@ import com.vaadin.ui.ClientWidget;
 @ClientWidget(com.vaadin.sonarwidget.widgetset.client.ui.VSonarWidget.class)
 public class SonarWidget extends AbstractComponent{
 
-	private int windowlength = 0;
-	private int windowheight = 0;
 	private LowranceSonar sonar;
-	private Queue<Integer> offsets;
+	private Queue<Frame> offsets;
 	private boolean overlay = true;
 	
+	private static class Frame {
+		public Integer offset;
+		public Integer width;
+		public Integer height;
+	}
+	
 	public SonarWidget(File file) {
-		offsets = new LinkedList<Integer>();
+		offsets = new LinkedList<Frame>();
 		try {
 			sonar = new LowranceSonar(file);
 		} catch (IOException e) {			
@@ -44,29 +48,29 @@ public class SonarWidget extends AbstractComponent{
 		super.paintContent(target);
 		
 		target.addAttribute("overlay", overlay);
-		if(windowlength != 0 && windowheight != 0) {
-			final Integer offset = this.offsets.poll();
+		final Frame frame = this.offsets.poll();			
+
+		if(frame != null && 
+			frame.width != null && 
+			frame.height != null && 
+			frame.offset != null) {
 			
-			if(offset == null) {
-				return;
-			}
-			
-			String[] lowlimits = new String[windowlength];
-			String[] depths = new String[windowlength];
-			String[] temps = new String[windowlength];
+			String[] lowlimits = new String[frame.width];
+			String[] depths = new String[frame.width];
+			String[] temps = new String[frame.width];
 			Ping[] pingRange = null;
 			try {
-				if(sonar.getLength() > (offset+windowlength)) {
-					pingRange = sonar.getPingRange(offset, windowlength);
+				if(sonar.getLength() > (frame.offset+frame.width)) {
+					pingRange = sonar.getPingRange(frame.offset, frame.width);
 				} else {
-					pingRange = sonar.getPingRange(offset, (int) (sonar.getLength()-offset));
+					pingRange = sonar.getPingRange(frame.offset, (int) (sonar.getLength()-frame.offset));
 				}
 				
 			} catch (IOException e) {		
 				e.printStackTrace();
 			}
 			
-			for(int loop=0; loop < windowlength && loop < pingRange.length; loop++) {
+			for(int loop=0; loop < frame.width && loop < pingRange.length; loop++) {
 				lowlimits[loop] = String.format("%.1f", pingRange[loop].getLowLimit());	
 				depths[loop] = String.format("%.1f", pingRange[loop].getDepth());
 				temps[loop] = String.format("%.1f", pingRange[loop].getTemp());
@@ -78,14 +82,14 @@ public class SonarWidget extends AbstractComponent{
 			target.addAttribute("temps", temps);
 
 			
-			target.addAttribute("offset", offset);
+			target.addAttribute("offset", frame.offset);
 						
 			StreamResource streamResource = new StreamResource(new StreamSource() {
 				@Override
 				public InputStream getStream() {
 			        try {
 			        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-			            ImageIO.write(Main.createImage(sonar, offset, windowlength, windowheight), "png", imagebuffer);	           
+			            ImageIO.write(Main.createImage(sonar, frame.offset, frame.width, frame.height), "png", imagebuffer);	           
 			            return new ByteArrayInputStream(imagebuffer.toByteArray());
 			        } catch (IOException e) {
 			        	e.printStackTrace();
@@ -93,7 +97,7 @@ public class SonarWidget extends AbstractComponent{
 			        }
 				}
 			}, 
-			String.format("frame%d-%d.png", offset, new Date().getTime()), 
+			String.format("frame%d-%d.png", frame.offset, new Date().getTime()), 
 			getApplication()
 			);
 			
@@ -103,20 +107,21 @@ public class SonarWidget extends AbstractComponent{
 
 	@Override
 	public void changeVariables(Object source, Map<String, Object> variables) {
+		Frame frame = new Frame();
 		if(variables.containsKey("windowwidth")) {
-			windowlength = (Integer)variables.get("windowwidth");			
+			frame.width = (Integer)variables.get("windowwidth");			
 		}
 		
 		if(variables.containsKey("windowheight")) {
-			windowheight = (Integer)variables.get("windowheight");
+			frame.height = (Integer)variables.get("windowheight");
 		}
 		
-		if(variables.containsKey("currentwindow")) {			
-			this.offsets.add((Integer)variables.get("currentwindow"));
+		if(variables.containsKey("currentwindow")) {
+			frame.offset = (Integer)variables.get("currentwindow");
 		}
+		this.offsets.add(frame);
 		
 		requestRepaint();
-		  
 	}
 
 	public void setOverlay(boolean booleanValue) {

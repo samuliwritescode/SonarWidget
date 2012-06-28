@@ -32,7 +32,7 @@ public class OpenlayersexperimentApplication extends Application {
 		//layout.addComponent(button);
 		layout.addComponent(sonarWidget);
 
-		sonarWidget.setHeight("600px");
+		sonarWidget.setHeight("400px");
 		sonarWidget.setWidth("100%");
 
 		
