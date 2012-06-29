@@ -163,7 +163,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 
 	private void drawBitmap(final int offset, final String name, final Context2d context) {
-		final Image image = new Image(GWT.getHostPageBaseURL()+"/"+name.substring(5));
+		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(5));
 		RootPanel.get().add(image);
 		image.setVisible(false);
 		image.addLoadHandler(new LoadHandler() {
