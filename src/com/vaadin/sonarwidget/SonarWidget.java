@@ -55,23 +55,26 @@ public class SonarWidget extends AbstractComponent{
 			frame.width != null && 
 			frame.height != null && 
 			frame.offset != null) {
+			if(sonar.getLength() < frame.offset) {
+				return;
+			}
 			
-			String[] lowlimits = new String[frame.width];
-			String[] depths = new String[frame.width];
-			String[] temps = new String[frame.width];
+			if(sonar.getLength() < (frame.offset+frame.width)) {
+				frame.width = (int) (sonar.getLength() - frame.offset);
+			}
+			
 			Ping[] pingRange = null;
 			try {
-				if(sonar.getLength() > (frame.offset+frame.width)) {
-					pingRange = sonar.getPingRange(frame.offset, frame.width);
-				} else {
-					pingRange = sonar.getPingRange(frame.offset, (int) (sonar.getLength()-frame.offset));
-				}
-				
+				pingRange = sonar.getPingRange(frame.offset, frame.width);
 			} catch (IOException e) {		
 				e.printStackTrace();
 			}
 			
-			for(int loop=0; loop < frame.width && loop < pingRange.length; loop++) {
+			String[] lowlimits = new String[pingRange.length];
+			String[] depths = new String[pingRange.length];
+			String[] temps = new String[pingRange.length];
+			
+			for(int loop=0; loop < pingRange.length; loop++) {
 				lowlimits[loop] = String.format("%.1f", pingRange[loop].getLowLimit());	
 				depths[loop] = String.format("%.1f", pingRange[loop].getDepth());
 				temps[loop] = String.format("%.1f", pingRange[loop].getTemp());
@@ -81,8 +84,6 @@ public class SonarWidget extends AbstractComponent{
 			target.addAttribute("lowlimits", lowlimits);
 			target.addAttribute("depths", depths);
 			target.addAttribute("temps", temps);
-
-			
 			target.addAttribute("offset", frame.offset);
 						
 			StreamResource streamResource = new StreamResource(new StreamSource() {
@@ -90,7 +91,7 @@ public class SonarWidget extends AbstractComponent{
 				public InputStream getStream() {
 			        try {
 			        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-			            ImageIO.write(createImage(sonar, frame.offset, frame.width, frame.height), "png", imagebuffer);	           
+			            ImageIO.write(createImage(sonar, frame.offset, frame.width, frame.height), "jpg", imagebuffer);	           
 			            return new ByteArrayInputStream(imagebuffer.toByteArray());
 			        } catch (IOException e) {
 			        	e.printStackTrace();
@@ -98,7 +99,7 @@ public class SonarWidget extends AbstractComponent{
 			        }
 				}
 			}, 
-			String.format("frame%d-%d.png", frame.offset, new Date().getTime()), 
+			String.format("frame%d-%d.jpg", frame.offset, new Date().getTime()), 
 			getApplication()
 			);
 			

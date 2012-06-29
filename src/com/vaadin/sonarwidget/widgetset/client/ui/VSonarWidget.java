@@ -35,9 +35,8 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private String uid;
 	private List<Canvas> canvases;
 	private List<String> drawn;
-	private String[] depths;
-	private String[] temps;
-	private String[] lowlimits;
+	private DepthData model;
+
 	private int tilewidth = 400;
 	private Label depthlabel;
 	private Label templabel;
@@ -55,7 +54,6 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		this.cursorlabel = new Label();
 		vert = new HorizontalPanel();
 		vert.setHeight("100%");
-		
 		labels = new VerticalPanel();
 		labels.getElement().getStyle().setPosition(Position.FIXED);
 		labels.setStyleName("v-sonarwidget-labels");
@@ -79,9 +77,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		vert.setWidth(width+"px");
 		vert.add(labels);
 		
-		depths = new String[width];
-		temps = new String[width];
-		lowlimits = new String[width];
+		model = new DepthData(width);
 		
 		vert.add(ruler);
 		
@@ -92,9 +88,11 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			this.canvases.add(canvas);
 			vert.add(canvas);
 			canvas.setCoordinateSpaceHeight(getElement().getClientHeight());
-			canvas.setCoordinateSpaceWidth(this.tilewidth);
-			canvas.setWidth(this.tilewidth+"px");
 			canvas.setHeight(getElement().getClientHeight()+"px");
+
+			int canvaswidth = Math.min(this.tilewidth, width-loop);
+			canvas.setCoordinateSpaceWidth(canvaswidth);
+			canvas.setWidth(canvaswidth+"px");
 		}
 	}
 
@@ -145,15 +143,15 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			context.clearRect(0, 0, tilewidth, canvas.getCoordinateSpaceHeight());
 			
 			if(uidl.hasAttribute("lowlimits")) {
-				fillArray(uidl.getStringArrayAttribute("lowlimits"), this.lowlimits, offset);			
+				model.appendLowlimit(uidl.getStringArrayAttribute("lowlimits"), offset);			
 			}
 			
 			if(uidl.hasAttribute("depths")) {
-				fillArray(uidl.getStringArrayAttribute("depths"), this.depths, offset);			
+				model.appendDepth(uidl.getStringArrayAttribute("depths"), offset);			
 			}
 			
 			if(uidl.hasAttribute("temps")) {
-				fillArray(uidl.getStringArrayAttribute("temps"), this.temps, offset);				
+				model.appendTemp(uidl.getStringArrayAttribute("temps"), offset);				
 			}
 			
 			if(uidl.hasAttribute("pic")) {
@@ -162,12 +160,6 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			
 			drawOverlay(offset, context);
 		}
-	}
-	
-	private void fillArray(String[] slice, String[] array, int offset) {
-		for(int loop=offset; loop < offset+slice.length; loop++) {
-			array[loop] = slice[loop-offset];
-		}	
 	}
 
 	private void drawBitmap(final int offset, final String name, final Context2d context) {
@@ -189,7 +181,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 						}
 						
 						context.setGlobalAlpha(alpha*0.1);
-						context.drawImage(ImageElement.as(image.getElement()), 0, 0, tilewidth, getElement().getClientHeight());
+						context.drawImage(ImageElement.as(image.getElement()), 0, 0, context.getCanvas().getOffsetWidth(), getElement().getClientHeight());
 						drawOverlay(offset, context);
 						alpha++;
 					}
@@ -205,9 +197,10 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		
 		context.setStrokeStyle("red");
 		context.beginPath();
-		for(int loop=offset; loop < offset+tilewidth; loop++) {
-			float depth = new Float(depths[loop]).floatValue();
-			float lowlimit = new Float(lowlimits[loop]).floatValue();
+		int width = context.getCanvas().getOffsetWidth();
+		for(int loop=offset; loop < offset+width; loop++) {
+			float depth = model.getDepth(loop);
+			float lowlimit = model.getLowlimit(loop);
 			if(loop-offset==0) {
 				context.moveTo(loop-offset, getElement().getClientHeight()*depth/lowlimit);
 			} else {
@@ -229,8 +222,8 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		Context2d context2d = this.ruler.getContext2d();
 		context2d.setFillStyle("blue");
 		context2d.fillRect(0, 0, 1, height);
-		float depth = new Float(depths[coordinate]).floatValue();
-		float lowlimit = new Float(lowlimits[coordinate]).floatValue();
+		float depth = model.getDepth(coordinate);
+		float lowlimit = model.getLowlimit(coordinate);
 		int drawdepth = (int) (height*depth/lowlimit);
 		context2d.moveTo(10, drawdepth-10);
 		context2d.lineTo(1, drawdepth);
@@ -253,18 +246,15 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private void updateLabels(int coordinate, int coordinateY) {
 		this.labels.setVisible(true);
 		this.labels.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
-		
-		if(this.depths != null && this.depths.length > coordinate) {
-			this.depthlabel.setText("Depth: "+this.depths[coordinate]+" m");			
-			float lowlimit = new Float(lowlimits[coordinate]).floatValue();
-			float cursor = lowlimit*(coordinateY/(float)getElement().getClientHeight());
-			this.cursorlabel.setText("Cursor: "+NumberFormat.getFormat("#.0 m").format(cursor));
-		}
-		
-		if(this.temps != null && this.temps.length > coordinate) {
-			this.templabel.setText("Temp: "+this.temps[coordinate]+" C");
-		}
+
+		this.depthlabel.setText("Depth: "+model.getDepth(coordinate)+" m");			
+		float lowlimit = model.getLowlimit(coordinate);
+		float cursor = lowlimit*(coordinateY/(float)getElement().getClientHeight());
+		this.cursorlabel.setText("Cursor: "+NumberFormat.getFormat("#.0 m").format(cursor));
+		this.templabel.setText("Temp: "+model.getTemp(coordinate)+" C");
 	}
+	
+
 	
 	@Override
 	public void onBrowserEvent(Event event) {
@@ -276,6 +266,58 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		default:
 			super.onBrowserEvent(event);
 			break;
+		}
+	}
+	
+	private static class DepthData {
+		private String[] depths;
+		private String[] temps;
+		private String[] lowlimits;
+		
+		public DepthData(int width) {
+			depths = new String[width];
+			temps = new String[width];
+			lowlimits = new String[width];
+		}
+		
+		private float getFloatValue(String[] table, int index) {
+			if(table != null &&
+				table.length > index && 
+				table[index] != null) {
+				return new Float(table[index]).floatValue();
+			}
+			
+			return 0;
+		}
+		
+		public float getDepth(int index) {
+			return getFloatValue(this.depths, index);
+		}
+		
+		public float getLowlimit(int index) {
+			return getFloatValue(this.lowlimits, index);
+		}
+		
+		public float getTemp(int index) {
+			return getFloatValue(this.temps, index);
+		}
+		
+		public void appendDepth(String[] data, int offset) {
+			fillArray(data, this.depths, offset);
+		}
+		
+		public void appendLowlimit(String[] data, int offset) {
+			fillArray(data, this.lowlimits, offset);
+		}
+		
+		public void appendTemp(String[] data, int offset) {
+			fillArray(data, this.temps, offset);
+		}
+		
+		private void fillArray(String[] slice, String[] array, int offset) {
+			for(int loop=offset; loop < offset+slice.length && loop < array.length; loop++) {
+				array[loop] = slice[loop-offset];
+			}	
 		}
 	}
 }
