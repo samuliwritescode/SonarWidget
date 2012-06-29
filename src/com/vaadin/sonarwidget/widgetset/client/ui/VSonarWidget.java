@@ -220,11 +220,13 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		this.ruler.setHeight(height+"px");
 		
 		Context2d context2d = this.ruler.getContext2d();
+		context2d.clearRect(0, 0, 10, height);
 		context2d.setFillStyle("blue");
 		context2d.fillRect(0, 0, 1, height);
 		float depth = model.getDepth(coordinate);
 		float lowlimit = model.getLowlimit(coordinate);
 		int drawdepth = (int) (height*depth/lowlimit);
+		context2d.beginPath();
 		context2d.moveTo(10, drawdepth-10);
 		context2d.lineTo(1, drawdepth);
 		context2d.lineTo(10, drawdepth+10);
