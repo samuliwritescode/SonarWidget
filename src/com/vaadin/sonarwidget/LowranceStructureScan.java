@@ -14,7 +14,7 @@ import java.io.RandomAccessFile;
  * @author samuli
  *
  */
-public class LowranceStructureScan {
+public class LowranceStructureScan implements Sonar {
 	private int format;
 	private File file;
 	
@@ -31,13 +31,19 @@ public class LowranceStructureScan {
 		return this.format;
 	}
 	
+
+	@Override
+	public long getLength() {
+		return 10000;
+	}
+	
 	private static int HEADER_SIZE = 40;
 	
-	public Ping[] getPingRange(int offset, int channel, int length) throws IOException {
+	public Ping[] getPingRange(int offset, int length) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
 		long ptr = 8;
 		int bytes = 0; 
-		Ping[] retval = new Ping[length];
+		StructurePing[] retval = new StructurePing[length];
 
 		raf.seek(ptr);
 		
@@ -51,13 +57,13 @@ public class LowranceStructureScan {
 		for(int loop=0; loop < length; loop++) {
 			try {
 				Header header = null;
-				Ping ping = null;
+				StructurePing ping = null;
 				while(true) {
 					header = getBlockHeader(raf);
 					bytes += header.length+HEADER_SIZE;
 					
-					if(header.type.ordinal() == channel) {
-						ping = new Ping(raf, header.length);
+					if(header.type == Type.eSideScan) {
+						ping = new StructurePing(raf, header.length);
 						ptr += header.length+HEADER_SIZE;
 						break;
 					}
@@ -126,7 +132,7 @@ public class LowranceStructureScan {
 		Type type;
 	}
 	
-	public class Ping {
+	public class StructurePing implements Ping{
 		private float lowLimit;
 		private float depth;
 		private float temp;
@@ -149,7 +155,7 @@ public class LowranceStructureScan {
 		private static final float KNOTS = 1.852f;
 
 		
-		public Ping(RandomAccessFile inputstream, int len) throws IOException {
+		public StructurePing(RandomAccessFile inputstream, int len) throws IOException {
 			int pingheader = 104;
 			byte[] header = readBytes(inputstream, pingheader);
 			debug = "";
@@ -235,5 +241,6 @@ public class LowranceStructureScan {
 					"";
 		}
 	}
+
 
 }

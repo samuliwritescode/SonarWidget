@@ -13,7 +13,7 @@ import java.io.IOException;
  * @author samuli
  *
  */
-public class LowranceSonar {
+public class LowranceSonar implements Sonar {
 	private int format;
 	private int blocksize;
 	private File file;
@@ -48,16 +48,16 @@ public class LowranceSonar {
 		DataInputStream inputstream = new DataInputStream(new FileInputStream(file));
 		inputstream.skip(10+blocksize*index);
 		
-		Ping[] retval = new Ping[length];
+		Ping[] retval = new LowrancePing[length];
 		
 		for(int loop=0; loop < length; loop++) {
-			retval[loop] = new Ping(inputstream);
+			retval[loop] = new LowrancePing(inputstream);
 		}
 		
 		return retval;
 	}
 	
-	public class Ping {
+	public class LowrancePing implements Ping{
 		private short mask;
 		private float lowLimit;
 		private float depth;
@@ -82,7 +82,7 @@ public class LowranceSonar {
 		private static final float KNOTS = 1.852f;
 
 		
-		public Ping(DataInputStream inputstream) throws IOException {
+		public LowrancePing(DataInputStream inputstream) throws IOException {
 			long headerlen = 2;
 			mask = toBigEndianShort(inputstream.readShort());
 			

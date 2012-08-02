@@ -10,7 +10,7 @@ public class SonarWidgetApplication extends Application {
 	public void init() {
 		final Window mainWindow = new Window("Sonarwidget Application");
 
-		final SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/sonar/Sonar0011.slg"));
+		final SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/sonar/Sonar0001.sl2"));
 
 		sonarWidget.setHeight("300px");
 		sonarWidget.setWidth("100%");

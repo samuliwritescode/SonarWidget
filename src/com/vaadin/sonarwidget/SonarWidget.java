@@ -13,7 +13,6 @@ import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
-import com.vaadin.sonarwidget.LowranceSonar.Ping;
 import com.vaadin.terminal.PaintException;
 import com.vaadin.terminal.PaintTarget;
 import com.vaadin.terminal.StreamResource;
@@ -24,7 +23,7 @@ import com.vaadin.ui.ClientWidget;
 @ClientWidget(com.vaadin.sonarwidget.widgetset.client.ui.VSonarWidget.class)
 public class SonarWidget extends AbstractComponent{
 
-	private LowranceSonar sonar;
+	private Sonar sonar;
 	private Queue<Frame> offsets;
 	private boolean overlay = true;
 	
@@ -37,7 +36,7 @@ public class SonarWidget extends AbstractComponent{
 	public SonarWidget(File file) {
 		offsets = new LinkedList<Frame>();
 		try {
-			sonar = new LowranceSonar(file);
+			sonar = new LowranceStructureScan(file);
 		} catch (IOException e) {			
 			throw new RuntimeException(e);
 		}
@@ -131,11 +130,11 @@ public class SonarWidget extends AbstractComponent{
 		requestRepaint();
 	}
 	
-	private BufferedImage createImage(LowranceSonar sonar, int offset, int width, int height) {
+	private BufferedImage createImage(Sonar sonar, int offset, int width, int height) {
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_RGB);
 		
 		try {
-			LowranceSonar.Ping[] pings = sonar.getPingRange(offset, width);
+			Ping[] pings = sonar.getPingRange(offset, width);
 	
 			for(int loop=0; loop < width; loop++) {
 				
