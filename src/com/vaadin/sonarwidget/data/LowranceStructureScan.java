@@ -1,82 +1,59 @@
 package com.vaadin.sonarwidget.data;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * No public spec exists for Lowrance sonar format.
- * This thread has been for great help in reverse 
- * engineering the file format. 
- * http://www.geotech1.com/forums/showthread.php?t=11159
+ * SL2 file format is not documented publicly
+ * and implementation here is obtained by
+ * analyzing a binary file.
  * @author samuli
  *
  */
 public class LowranceStructureScan implements Sonar {
-	private int format;
 	private File file;
+	private static int HEADER_SIZE = 40;
 	
 	public LowranceStructureScan(File file) throws IOException {
 		this.file = file;
-		
-		DataInputStream datainput = new DataInputStream(new FileInputStream(file));
-		format = Integer.reverseBytes(datainput.readInt());		
-		Short.reverseBytes(datainput.readShort());
-		datainput.close();
 	}
-	
-	public int getFormat() {
-		return this.format;
-	}
-	
 
 	@Override
 	public long getLength() {
 		return 10000;
 	}
 	
-	private static int HEADER_SIZE = 40;
-	
+	@Override
 	public Ping[] getPingRange(int offset, int length) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
 		long ptr = 8;
-		int bytes = 0; 
 		StructurePing[] retval = new StructurePing[length];
 
 		raf.seek(ptr);
 		
 		for(int skip=0; skip < offset*3; skip++) {
 			int blocklen = getBlockHeader(raf).length;
-			bytes += blocklen-HEADER_SIZE;
 			ptr += blocklen+HEADER_SIZE;
 			raf.seek(ptr);
 		}
 		
 		for(int loop=0; loop < length; loop++) {
-			try {
-				Header header = null;
-				StructurePing ping = null;
-				while(true) {
-					header = getBlockHeader(raf);
-					bytes += header.length+HEADER_SIZE;
-					
-					if(header.type == Type.eSideScan) {
-						ping = new StructurePing(raf, header.length);
-						ptr += header.length+HEADER_SIZE;
-						break;
-					}
+			Header header = null;
+			StructurePing ping = null;
+			while(true) {
+				header = getBlockHeader(raf);
+				
+				if(header.type == Type.eSideScan) {
+					ping = new StructurePing(raf, header.length);
 					ptr += header.length+HEADER_SIZE;
-					raf.seek(ptr);
+					break;
 				}
-				
-				retval[loop] = ping;
-				
-			} catch(Exception e) {
-				System.out.println("Exception at "+bytes+", "+e.getMessage());
-				e.printStackTrace();
+				ptr += header.length+HEADER_SIZE;
+				raf.seek(ptr);
 			}
+			
+			retval[loop] = ping;
 		}
 		
 		raf.close();
@@ -127,12 +104,12 @@ public class LowranceStructureScan implements Sonar {
 	
 	public enum Type {eTraditional, eDownScan, eSideScan}
 	
-	public class Header {
+	private class Header {
 		int length = 0;
 		Type type;
 	}
 	
-	public class StructurePing implements Ping{
+	private class StructurePing implements Ping{
 		private float lowLimit;
 		private float depth;
 		private float temp;
@@ -147,7 +124,7 @@ public class LowranceStructureScan implements Sonar {
 		
 		private byte[] soundings;
 		
-		private String debug;
+//		private String debug;
 		
 		private static final double RAD_CONVERSION = 180/Math.PI;
 		private static final double EARTH_RADIUS = 6356752.3142;
@@ -158,7 +135,7 @@ public class LowranceStructureScan implements Sonar {
 		public StructurePing(RandomAccessFile inputstream, int len) throws IOException {
 			int pingheader = 104;
 			byte[] header = readBytes(inputstream, pingheader);
-			debug = "";
+//			debug = "";
 			
 //			for(int loop=0; loop < pingheader; loop+=4) {
 //				int valuei = toBigEndianInt(header, loop);
@@ -179,13 +156,16 @@ public class LowranceStructureScan implements Sonar {
 		}
 
 		
+		@Override
 		public float getDepth() {
 			return this.depth*FEET_TO_METERS;
 		}
 		
+		@Override
 		public float getTemp() {
 			return this.temp;
 		}
+		
 		
 		public int getTimeStamp() {
 			return this.timeOffset;
@@ -195,10 +175,12 @@ public class LowranceStructureScan implements Sonar {
 			return this.speed*KNOTS;
 		}
 		
+		@Override
 		public byte[] getSoundings() {
 			return this.soundings;
 		}
 		
+		@Override
 		public float getLowLimit() {
 			return this.lowLimit*FEET_TO_METERS;
 		}
@@ -228,18 +210,18 @@ public class LowranceStructureScan implements Sonar {
 			return this.type;
 		}
 		
-		@Override
-		public String toString() {
-			return debug+"\n"+
-					", lowlimit: "+getLowLimit()+
-					", depth: "+getDepth()+
-					", temp: "+getTemp()+					
-					", pos: "+Double.toString(getLatitude())+"/"+Double.toString(getLongitude())+
-					", time: "+getTimeStamp()+					
-					", speed: "+getSpeed()+
-					", track: "+getTrack()+
-					"";
-		}
+//		@Override
+//		public String toString() {
+//			return debug+"\n"+
+//					", lowlimit: "+getLowLimit()+
+//					", depth: "+getDepth()+
+//					", temp: "+getTemp()+					
+//					", pos: "+Double.toString(getLatitude())+"/"+Double.toString(getLongitude())+
+//					", time: "+getTimeStamp()+					
+//					", speed: "+getSpeed()+
+//					", track: "+getTrack()+
+//					"";
+//		}
 	}
 
 

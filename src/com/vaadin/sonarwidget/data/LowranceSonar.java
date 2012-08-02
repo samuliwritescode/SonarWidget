@@ -57,7 +57,7 @@ public class LowranceSonar implements Sonar {
 		return retval;
 	}
 	
-	public class LowrancePing implements Ping{
+	private class LowrancePing implements Ping {
 		private short mask;
 		private float lowLimit;
 		private float depth;
@@ -190,26 +190,6 @@ public class LowranceSonar implements Sonar {
 			return bytes;
 		}
 
-//		private void printBytes(byte[] bytes) {
-//			System.out.println("mask: "+mask);
-//			System.out.print("RAW: ");
-//			for(int loop=0; loop < bytes.length; loop++) {
-//				System.out.print(String.format("%02x ", bytes[loop]));
-//			}
-//			System.out.println("");
-//			
-//			System.out.print("int: ");
-//			for(int loop=0; loop < bytes.length; loop+=4) {
-//				System.out.print(String.format("%d ", toBigEndianInt(bytes, loop)));
-//			}
-//			System.out.println("");
-//			
-//			System.out.print("float: ");
-//			for(int loop=0; loop < bytes.length; loop+=4) {
-//				System.out.print(String.format("%f ", toBigEndianFloat(bytes, loop)));
-//			}
-//			System.out.println("");
-//		}
 		
 		private int toBigEndianInt(byte[] raw, int offset) {
 			return 0xFF000000&(raw[offset+3]<<24) | 0x00FF0000&(raw[offset+2]<<16) | 0x0000FF00&(raw[offset+1]<<8) | 0x000000FF&raw[offset];
