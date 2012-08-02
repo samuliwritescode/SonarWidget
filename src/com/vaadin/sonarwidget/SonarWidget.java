@@ -13,6 +13,9 @@ import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
+import com.vaadin.sonarwidget.data.LowranceStructureScan;
+import com.vaadin.sonarwidget.data.Ping;
+import com.vaadin.sonarwidget.data.Sonar;
 import com.vaadin.terminal.PaintException;
 import com.vaadin.terminal.PaintTarget;
 import com.vaadin.terminal.StreamResource;

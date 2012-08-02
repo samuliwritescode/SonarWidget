@@ -1,4 +1,4 @@
-package com.vaadin.sonarwidget;
+package com.vaadin.sonarwidget.data;
 
 import java.io.IOException;
 
