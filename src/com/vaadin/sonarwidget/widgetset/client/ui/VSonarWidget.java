@@ -42,6 +42,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private Label templabel;
 	private Label cursorlabel;
 	private boolean overlay;
+	private boolean sidescan;
 	private Canvas ruler;
 	private VerticalPanel labels;
 
@@ -134,6 +135,10 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		if(uidl.hasAttribute("overlay")) {
 			this.overlay = uidl.getBooleanAttribute("overlay");
 		}
+		
+		if(uidl.hasAttribute("sidesonar")) {
+			this.sidescan = uidl.getBooleanAttribute("sidesonar");
+		}
 
 		if(uidl.hasAttribute("offset")) {
 			int offset = uidl.getIntAttribute("offset");
@@ -194,19 +199,49 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		if(!this.overlay) {
 			return;
 		}
-		
-		context.setStrokeStyle("red");
-		context.beginPath();
+
 		int width = context.getCanvas().getOffsetWidth();
+		double[] points = new double[width];
+		double[] mirrorpoints = null;
+		
+		if(this.sidescan) {
+			mirrorpoints = new double[width];
+		}
+		
 		for(int loop=offset; loop < offset+width; loop++) {
 			float depth = model.getDepth(loop);
 			float lowlimit = model.getLowlimit(loop);
-			if(loop-offset==0) {
-				context.moveTo(loop-offset, getElement().getClientHeight()*depth/lowlimit);
+			
+			double yPos = getElement().getClientHeight()*depth/lowlimit;
+						
+			if(this.sidescan) {
+				yPos = (getElement().getClientHeight()/2)*depth/lowlimit + getElement().getClientHeight()/2;
+				mirrorpoints[loop-offset] = getElement().getClientHeight()/2 - (yPos-getElement().getClientHeight()/2);
+			}
+			
+			points[loop-offset] = yPos;
+		}
+		
+		drawLine(context, points);
+		if(mirrorpoints != null) {
+			drawLine(context, mirrorpoints);
+		}
+	}
+	
+	private void drawLine(Context2d context, double[] points) {
+		context.setStrokeStyle("red");
+		context.beginPath();
+		
+		for(int loop=0; loop < points.length; loop++) {
+			double yPos = points[loop];
+			
+			if(loop==0) {
+				context.moveTo(loop, yPos);
 			} else {
-				context.lineTo(loop-offset, getElement().getClientHeight()*depth/lowlimit);
+				context.lineTo(loop, yPos);
 			}
 		}
+		
 		context.stroke();
 	}
 	
@@ -252,11 +287,15 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		this.depthlabel.setText("Depth: "+model.getDepth(coordinate)+" m");			
 		float lowlimit = model.getLowlimit(coordinate);
 		float cursor = lowlimit*(coordinateY/(float)getElement().getClientHeight());
+		
+		if(this.sidescan) {
+			float surfacepx = (float)getElement().getClientHeight()/2;
+			float distancepx = Math.abs(surfacepx - coordinateY);
+			cursor = distancepx * lowlimit/surfacepx;
+		}
 		this.cursorlabel.setText("Cursor: "+NumberFormat.getFormat("#.0 m").format(cursor));
 		this.templabel.setText("Temp: "+model.getTemp(coordinate)+" C");
 	}
-	
-
 	
 	@Override
 	public void onBrowserEvent(Event event) {

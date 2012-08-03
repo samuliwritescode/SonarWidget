@@ -58,6 +58,8 @@ public class SonarWidget extends AbstractComponent{
 		super.paintContent(target);
 		
 		target.addAttribute("overlay", overlay);
+		target.addAttribute("sidesonar", sonar.getType() == Type.eSideScan);
+
 		final Frame frame = this.offsets.poll();			
 
 		if(frame != null && 
