@@ -3,6 +3,8 @@ package com.vaadin.sonarwidget.data;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SL2 file format is not documented publicly
@@ -14,46 +16,51 @@ import java.io.RandomAccessFile;
 public class LowranceStructureScan implements Sonar {
 	private File file;
 	private static int HEADER_SIZE = 40;
+	public enum Type {eTraditional, eDownScan, eSideScan}
+	private List<Long> pointerTable = new ArrayList<Long>();
 	
-	public LowranceStructureScan(File file) throws IOException {
+	public LowranceStructureScan(File file, Type channel) throws IOException {
 		this.file = file;
+		
+		RandomAccessFile raf = new RandomAccessFile(file, "r");
+		long ptr = 8;
+		raf.seek(ptr);
+		
+		while(true) {
+			Header blockHeader = getBlockHeader(raf);
+			if(blockHeader.type == channel) {
+				pointerTable.add(ptr);
+			}
+
+			ptr += blockHeader.length+HEADER_SIZE;
+			if(ptr >= raf.length()) {
+				break;
+			}
+
+			raf.seek(ptr);
+		}
+		
+		raf.close();
 	}
 
 	@Override
 	public long getLength() {
-		return 10000;
+		return this.pointerTable.size();
 	}
 	
 	@Override
 	public Ping[] getPingRange(int offset, int length) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		long ptr = 8;
 		StructurePing[] retval = new StructurePing[length];
-
-		raf.seek(ptr);
 		
-		for(int skip=0; skip < offset*3; skip++) {
-			int blocklen = getBlockHeader(raf).length;
-			ptr += blocklen+HEADER_SIZE;
-			raf.seek(ptr);
+		if(offset+length > pointerTable.size()) {
+			throw new IndexOutOfBoundsException("offset+length beyond file length");
 		}
 		
 		for(int loop=0; loop < length; loop++) {
-			Header header = null;
-			StructurePing ping = null;
-			while(true) {
-				header = getBlockHeader(raf);
-				
-				if(header.type == Type.eSideScan) {
-					ping = new StructurePing(raf, header.length);
-					ptr += header.length+HEADER_SIZE;
-					break;
-				}
-				ptr += header.length+HEADER_SIZE;
-				raf.seek(ptr);
-			}
-			
-			retval[loop] = ping;
+			raf.seek(pointerTable.get(offset+loop));
+			Header header = getBlockHeader(raf);
+			retval[loop] = new StructurePing(raf, header.length);
 		}
 		
 		raf.close();
@@ -102,7 +109,7 @@ public class LowranceStructureScan implements Sonar {
 		return Float.intBitsToFloat(toBigEndianInt(raw, offset));
 	}
 	
-	public enum Type {eTraditional, eDownScan, eSideScan}
+	
 	
 	private class Header {
 		int length = 0;

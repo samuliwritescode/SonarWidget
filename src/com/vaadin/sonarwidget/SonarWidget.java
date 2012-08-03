@@ -14,6 +14,7 @@ import java.util.Queue;
 import javax.imageio.ImageIO;
 
 import com.vaadin.sonarwidget.data.LowranceStructureScan;
+import com.vaadin.sonarwidget.data.LowranceStructureScan.Type;
 import com.vaadin.sonarwidget.data.Ping;
 import com.vaadin.sonarwidget.data.Sonar;
 import com.vaadin.terminal.PaintException;
@@ -39,7 +40,7 @@ public class SonarWidget extends AbstractComponent{
 	public SonarWidget(File file) {
 		offsets = new LinkedList<Frame>();
 		try {
-			sonar = new LowranceStructureScan(file);
+			sonar = new LowranceStructureScan(file, Type.eSideScan);
 		} catch (IOException e) {			
 			throw new RuntimeException(e);
 		}
