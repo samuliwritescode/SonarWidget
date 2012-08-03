@@ -15,9 +15,9 @@ import javax.imageio.ImageIO;
 
 import com.vaadin.sonarwidget.data.LowranceSonar;
 import com.vaadin.sonarwidget.data.LowranceStructureScan;
-import com.vaadin.sonarwidget.data.LowranceStructureScan.Type;
 import com.vaadin.sonarwidget.data.Ping;
 import com.vaadin.sonarwidget.data.Sonar;
+import com.vaadin.sonarwidget.data.Sonar.Type;
 import com.vaadin.terminal.PaintException;
 import com.vaadin.terminal.PaintTarget;
 import com.vaadin.terminal.StreamResource;
@@ -38,12 +38,12 @@ public class SonarWidget extends AbstractComponent{
 		public Integer height;
 	}
 	
-	public SonarWidget(File file) {
+	public SonarWidget(File file, Type preferredChannel) {
 		offsets = new LinkedList<Frame>();
 		try {
 			String filenameExtension = file.getName().substring(file.getName().length()-3);
 			if(filenameExtension.equalsIgnoreCase("sl2")) {
-				sonar = new LowranceStructureScan(file, Type.eSideScan);
+				sonar = new LowranceStructureScan(file, preferredChannel);
 			} else if(filenameExtension.equalsIgnoreCase("slg")) {
 				sonar = new LowranceSonar(file);
 			}

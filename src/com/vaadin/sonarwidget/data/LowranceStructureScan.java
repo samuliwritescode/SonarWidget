@@ -15,12 +15,14 @@ import java.util.List;
  */
 public class LowranceStructureScan implements Sonar {
 	private File file;
+	private Type type;
 	private static int HEADER_SIZE = 40;
-	public enum Type {eTraditional, eDownScan, eSideScan}
+	
 	private List<Long> pointerTable = new ArrayList<Long>();
 	
 	public LowranceStructureScan(File file, Type channel) throws IOException {
 		this.file = file;
+		this.type = channel;
 		
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
 		long ptr = 8;
@@ -41,6 +43,11 @@ public class LowranceStructureScan implements Sonar {
 		}
 		
 		raf.close();
+	}
+	
+	@Override
+	public Type getType() {
+		return this.type;
 	}
 
 	@Override

@@ -43,6 +43,11 @@ public class LowranceSonar implements Sonar {
 		return this.blocks;
 	}
 	
+	@Override
+	public Type getType() {
+		return Type.eTraditional;
+	}
+	
 	public Ping[] getPingRange(int index, int length) throws IOException {
 		
 		DataInputStream inputstream = new DataInputStream(new FileInputStream(file));
