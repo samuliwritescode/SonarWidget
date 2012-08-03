@@ -54,6 +54,7 @@ public class LowranceStructureScan implements Sonar {
 		StructurePing[] retval = new StructurePing[length];
 		
 		if(offset+length > pointerTable.size()) {
+			raf.close();
 			throw new IndexOutOfBoundsException("offset+length beyond file length");
 		}
 		
@@ -126,13 +127,9 @@ public class LowranceStructureScan implements Sonar {
 		private int timeOffset;
 		private float speed;
 		private float track;
-		private Type type;
-		
-		
+	
 		private byte[] soundings;
-		
-//		private String debug;
-		
+
 		private static final double RAD_CONVERSION = 180/Math.PI;
 		private static final double EARTH_RADIUS = 6356752.3142;
 		private static final float FEET_TO_METERS = 0.3048f;
@@ -142,13 +139,6 @@ public class LowranceStructureScan implements Sonar {
 		public StructurePing(RandomAccessFile inputstream, int len) throws IOException {
 			int pingheader = 104;
 			byte[] header = readBytes(inputstream, pingheader);
-//			debug = "";
-			
-//			for(int loop=0; loop < pingheader; loop+=4) {
-//				int valuei = toBigEndianInt(header, loop);
-//				float valuef = toBigEndianFloat(header, loop);			
-//				debug += String.format("off: "+loop+" value: %02x, %d, %f\n", valuei, valuei, valuef);
-//			}
 			
 			lowLimit = toBigEndianFloat(header, 4);
 			timeOffset = toBigEndianInt(header, 100);
@@ -173,11 +163,12 @@ public class LowranceStructureScan implements Sonar {
 			return this.temp;
 		}
 		
-		
+		@Override
 		public int getTimeStamp() {
 			return this.timeOffset;
 		}
 		
+		@Override
 		public float getSpeed() {
 			return this.speed*KNOTS;
 		}
@@ -192,29 +183,27 @@ public class LowranceStructureScan implements Sonar {
 			return this.lowLimit*FEET_TO_METERS;
 		}
 		
+		@Override
 		public float getTrack() {
 			return this.track;
 		}
-
 		
 		/**
 		 * Convert Lowrance mercator meter format into WGS84.
 		 * Used this article as a reference: http://www.oziexplorer3.com/eng/eagle.html
 		 * @return
 		 */
+		@Override
 		public double getLongitude() {
 			return this.positionX/EARTH_RADIUS * RAD_CONVERSION;
 		}
 		
+		@Override
 		public double getLatitude() {
 			double temp = this.positionY/EARTH_RADIUS;
 			temp = Math.exp(temp);
 			temp = (2*Math.atan(temp))-(Math.PI/2);
 			return temp * RAD_CONVERSION;			
-		}
-		
-		public Type getType() {
-			return this.type;
 		}
 		
 //		@Override

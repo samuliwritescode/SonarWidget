@@ -205,44 +205,52 @@ public class LowranceSonar implements Sonar {
 					((0x00FF&littleendian)<<8)&0xFF00);
 		}
 		
+		@Override
 		public float getDepth() {
 			return this.depth*FEET_TO_METERS;
 		}
 		
+		@Override
 		public float getTemp() {
 			return this.temp;
 		}
 		
+		@Override
 		public int getTimeStamp() {
 			return this.timeOffset;
 		}
 		
+		@Override
 		public float getSpeed() {
 			return this.speed*KNOTS;
 		}
 		
+		@Override
 		public byte[] getSoundings() {
 			return this.soundings;
 		}
 		
+		@Override
 		public float getLowLimit() {
 			return this.lowLimit*FEET_TO_METERS;
 		}
 		
+		@Override
 		public float getTrack() {
 			return this.track;
 		}
-
 		
 		/**
 		 * Convert Lowrance mercator meter format into WGS84.
 		 * Used this article as a reference: http://www.oziexplorer3.com/eng/eagle.html
 		 * @return
 		 */
+		@Override
 		public double getLongitude() {
 			return this.positionX/EARTH_RADIUS * RAD_CONVERSION;
 		}
 		
+		@Override
 		public double getLatitude() {
 			double temp = this.positionY/EARTH_RADIUS;
 			temp = Math.exp(temp);
