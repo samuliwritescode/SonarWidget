@@ -13,6 +13,7 @@ import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
+import com.vaadin.sonarwidget.data.LowranceSonar;
 import com.vaadin.sonarwidget.data.LowranceStructureScan;
 import com.vaadin.sonarwidget.data.LowranceStructureScan.Type;
 import com.vaadin.sonarwidget.data.Ping;
@@ -40,7 +41,12 @@ public class SonarWidget extends AbstractComponent{
 	public SonarWidget(File file) {
 		offsets = new LinkedList<Frame>();
 		try {
-			sonar = new LowranceStructureScan(file, Type.eSideScan);
+			String filenameExtension = file.getName().substring(file.getName().length()-3);
+			if(filenameExtension.equalsIgnoreCase("sl2")) {
+				sonar = new LowranceStructureScan(file, Type.eSideScan);
+			} else if(filenameExtension.equalsIgnoreCase("slg")) {
+				sonar = new LowranceSonar(file);
+			}
 		} catch (IOException e) {			
 			throw new RuntimeException(e);
 		}
