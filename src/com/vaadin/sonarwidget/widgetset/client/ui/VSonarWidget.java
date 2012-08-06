@@ -98,7 +98,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	}
 
 	
-	private void getSonarData(int offset) {
+	private void fetchSonarData(int offset) {
 		int normalizedoffset = offset-offset%tilewidth;
 		
 		for(int loop = normalizedoffset; loop < normalizedoffset+getOffsetWidth()+this.tilewidth; loop+= this.tilewidth) {
@@ -124,7 +124,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		this.uid = uidl.getId();
 		
 		if(this.drawn.isEmpty()) {
-			getSonarData(0);
+			fetchSonarData(0);
 			return;
 		}		
 
@@ -167,10 +167,20 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		}
 	}
 
+	/**
+	 * Depth bitmap drawing is animated starting from 
+	 * fully transparent. Image tag is hidden and it's
+	 * content is drawn to HTML5 canvas.
+	 * @param offset
+	 * @param name
+	 * @param context
+	 */
 	private void drawBitmap(final int offset, final String name, final Context2d context) {
 		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(5));
 		RootPanel.get().add(image);
 		image.setVisible(false);
+		
+		//When image loads start transition animation
 		image.addLoadHandler(new LoadHandler() {
 			
 			@Override
@@ -181,6 +191,8 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 					@Override
 					public void run() {
 						
+						//when animation has reached
+						//zero opacity stop animation timer.
 						if(alpha >= 10) {
 							this.cancel();
 						}
@@ -195,6 +207,12 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		});
 	}
 
+	/**
+	 * Overlay is drawn on top of depth image.
+	 * Only red depth line is implemented so far.
+	 * @param offset 
+	 * @param context draw context
+	 */
 	private void drawOverlay(int offset, final Context2d context) {
 		if(!this.overlay) {
 			return;
@@ -208,18 +226,18 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			mirrorpoints = new double[width];
 		}
 		
-		for(int loop=offset; loop < offset+width; loop++) {
-			float depth = model.getDepth(loop);
-			float lowlimit = model.getLowlimit(loop);
+		for(int loop=0; loop < width; loop++) {
+			float depth = model.getDepth(loop+offset);
+			float lowlimit = model.getLowlimit(loop+offset);
 			
 			double yPos = getElement().getClientHeight()*depth/lowlimit;
 						
 			if(this.sidescan) {
 				yPos = (getElement().getClientHeight()/2)*depth/lowlimit + getElement().getClientHeight()/2;
-				mirrorpoints[loop-offset] = getElement().getClientHeight()/2 - (yPos-getElement().getClientHeight()/2);
+				mirrorpoints[loop] = getElement().getClientHeight()/2 - (yPos-getElement().getClientHeight()/2);
 			}
 			
-			points[loop-offset] = yPos;
+			points[loop] = yPos;
 		}
 		
 		drawLine(context, points);
@@ -258,6 +276,8 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		context2d.clearRect(0, 0, 10, height);
 		context2d.setFillStyle("blue");
 		context2d.fillRect(0, 0, 1, height);
+		
+		//Skip depth arrow in side scan mode
 		if(!this.sidescan) {
 			float depth = model.getDepth(coordinate);
 			float lowlimit = model.getLowlimit(coordinate);
@@ -274,41 +294,66 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	
 	@Override
 	public void onScroll(ScrollEvent event) {
-		getSonarData(getHorizontalScrollPosition());		
+		fetchSonarData(getHorizontalScrollPosition());		
 	}
 	
-	private void onMouseHover(int coordinate, int coordinateY) {
-		updateRuler(coordinate);		
-		updateLabels(coordinate, coordinateY);
+	private void onMouseHover(Point coordinate) {
+		updateRuler(coordinate.getX());		
+		updateTextLabels(coordinate);
 	}
 
-	private void updateLabels(int coordinate, int coordinateY) {
+	private void updateTextLabels(Point coordinate) {
 		this.labels.setVisible(true);
-		this.labels.getElement().getStyle().setMarginLeft(coordinate-getHorizontalScrollPosition(), Unit.PX);
+		this.labels.getElement().getStyle().setMarginLeft(coordinate.getX()-getHorizontalScrollPosition(), Unit.PX);
 
-		this.depthlabel.setText("Depth: "+model.getDepth(coordinate)+" m");			
-		float lowlimit = model.getLowlimit(coordinate);
-		float cursor = lowlimit*(coordinateY/(float)getElement().getClientHeight());
+		this.depthlabel.setText("Depth: "+model.getDepth(coordinate.getX())+" m");			
+		float lowlimit = model.getLowlimit(coordinate.getX());
+		float cursor = lowlimit*(coordinate.getY()/(float)getElement().getClientHeight());
 		
 		if(this.sidescan) {
 			float surfacepx = (float)getElement().getClientHeight()/2;
-			float distancepx = Math.abs(surfacepx - coordinateY);
+			float distancepx = Math.abs(surfacepx - coordinate.getY());
 			cursor = distancepx * lowlimit/surfacepx;
 		}
 		this.cursorlabel.setText("Cursor: "+NumberFormat.getFormat("#.0 m").format(cursor));
-		this.templabel.setText("Temp: "+model.getTemp(coordinate)+" C");
+		this.templabel.setText("Temp: "+model.getTemp(coordinate.getX())+" C");
 	}
 	
 	@Override
 	public void onBrowserEvent(Event event) {
 		switch(DOM.eventGetType(event)) {
 		case Event.ONMOUSEMOVE:
-			onMouseHover(event.getClientX()-getAbsoluteLeft()+getHorizontalScrollPosition(),
-					event.getClientY()-getAbsoluteTop());
+			onMouseHover(getMouseCursorPoint(event));
 			break;
 		default:
 			super.onBrowserEvent(event);
 			break;
+		}
+	}
+	
+	private Point getMouseCursorPoint(Event event) {
+		Point pt = new Point(
+			event.getClientX()-getAbsoluteLeft()+getHorizontalScrollPosition(),
+			event.getClientY()-getAbsoluteTop()
+		);
+		return pt;
+	}
+	
+	private static class Point {
+		int x;
+		int y;
+		
+		public Point(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+		
+		public int getX() {
+			return this.x;
+		}
+		
+		public int getY() {
+			return this.y;
 		}
 	}
 	
