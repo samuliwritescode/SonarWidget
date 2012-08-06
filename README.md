@@ -20,7 +20,7 @@ API documentation
 	@Override
 	public void init() {
 		Window mainWindow = new Window("My Application");
-		SonarWidget sonar = new SonarWidget(new File("/path/to/sonar/file.slg"));
+		SonarWidget sonar = new SonarWidget(new File("/path/to/sonar/file.slg"), Type.eTraditional);
 		sonar.setWidth("100%");
 		sonar.setHeight("400px");
 		mainWindow.addComponent(sonar);
@@ -31,10 +31,13 @@ API documentation
 Planned features
 ---------------
 * Support for Humminbird DAT format
-* Support for Lowrance SL2 format
 
 Version history
 ---------------
+
+## 0.0.2 (2012-08-06)
+* Support for Lowrance SL2 format
+* API changes to select channel if log has multiple of them
 
 ## 0.0.1 (2012-06-29)
 * First release
