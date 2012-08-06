@@ -13,12 +13,11 @@ import java.io.IOException;
  * @author samuli
  *
  */
-public class LowranceSonar implements Sonar {
+public class LowranceSonar extends AbstractLowrance {
 	private int format;
 	private int blocksize;
 	private File file;
 	private long blocks;
-	
 	
 	public LowranceSonar(File file) throws IOException {
 		this.file = file;
@@ -80,13 +79,7 @@ public class LowranceSonar implements Sonar {
 		private int rate;
 		
 		private byte[] soundings;
-		
-		private static final double RAD_CONVERSION = 180/Math.PI;
-		private static final double EARTH_RADIUS = 6356752.3142;
-		private static final float FEET_TO_METERS = 0.3048f;
-		private static final float KNOTS = 1.852f;
 
-		
 		public LowrancePing(DataInputStream inputstream) throws IOException {
 			long headerlen = 2;
 			mask = toBigEndianShort(inputstream.readShort());
@@ -132,13 +125,11 @@ public class LowranceSonar implements Sonar {
 				track = toBigEndianFloat(headers, 40);
 				altitude = toBigEndianFloat(headers, 44);				
 				rate = toBigEndianInt(headers, 48);
-				//System.out.println("surface1: "+surfaceDepth);
 			}
 			else if(mask == 27926) {
 				headerlen += 56;
 				byte[] headers = readBytes(inputstream, 56);
-				//printBytes(headers);
-				
+
 				lowLimit = toBigEndianFloat(headers, 0);
 				depth = toBigEndianFloat(headers, 4);
 				temp = toBigEndianFloat(headers, 8);
@@ -153,13 +144,11 @@ public class LowranceSonar implements Sonar {
 				speed = toBigEndianFloat(headers, 40);
 				track = toBigEndianFloat(headers, 44);
 				altitude = toBigEndianFloat(headers, 48);
-				//System.out.println("surface2: "+surfaceDepth);
 				
 				rate = toBigEndianInt(headers, 52);
 			}
 			else if(mask == 28436) {
 				headerlen += 48;
-				//printBytes(inputstream, 48);
 				
 				byte[] headers = readBytes(inputstream, 48);
 				
@@ -179,8 +168,6 @@ public class LowranceSonar implements Sonar {
 				
 				rate = toBigEndianInt(headers, 44);
 				
-				//System.out.println("surface3: "+surfaceDepth);
-				
 			} else {
 				System.out.println("unknown mask: "+mask);
 			}
@@ -189,30 +176,9 @@ public class LowranceSonar implements Sonar {
 			inputstream.read(soundings, 0, (int) (blocksize-headerlen));			
 		}
 		
-		private byte[] readBytes(DataInputStream stream, int len) throws IOException {
-			byte[] bytes = new byte[len];
-			stream.read(bytes, 0, len);
-			return bytes;
-		}
-
-		
-		private int toBigEndianInt(byte[] raw, int offset) {
-			return 0xFF000000&(raw[offset+3]<<24) | 0x00FF0000&(raw[offset+2]<<16) | 0x0000FF00&(raw[offset+1]<<8) | 0x000000FF&raw[offset];
-		}
-		
-		private float toBigEndianFloat(byte[] raw, int offset) {
-			return Float.intBitsToFloat(toBigEndianInt(raw, offset));
-		}
-		
-		private short toBigEndianShort(short littleendian) {
-			
-			return (short) (((0xFF00&littleendian)>>8)&0x00FF |
-					((0x00FF&littleendian)<<8)&0xFF00);
-		}
-		
 		@Override
 		public float getDepth() {
-			return this.depth*FEET_TO_METERS;
+			return toMetres(this.depth);
 		}
 		
 		@Override
@@ -227,7 +193,7 @@ public class LowranceSonar implements Sonar {
 		
 		@Override
 		public float getSpeed() {
-			return this.speed*KNOTS;
+			return toKilometersPerHour(this.speed);
 		}
 		
 		@Override
@@ -237,48 +203,22 @@ public class LowranceSonar implements Sonar {
 		
 		@Override
 		public float getLowLimit() {
-			return this.lowLimit*FEET_TO_METERS;
+			return toMetres(this.lowLimit);
 		}
 		
 		@Override
 		public float getTrack() {
 			return this.track;
 		}
-		
-		/**
-		 * Convert Lowrance mercator meter format into WGS84.
-		 * Used this article as a reference: http://www.oziexplorer3.com/eng/eagle.html
-		 * @return
-		 */
+
 		@Override
 		public double getLongitude() {
-			return this.positionX/EARTH_RADIUS * RAD_CONVERSION;
+			return toLongitude(this.positionX);
 		}
 		
 		@Override
 		public double getLatitude() {
-			double temp = this.positionY/EARTH_RADIUS;
-			temp = Math.exp(temp);
-			temp = (2*Math.atan(temp))-(Math.PI/2);
-			return temp * RAD_CONVERSION;			
-		}
-		
-		@Override
-		public String toString() {
-			return Short.toString(mask)+
-					", lowlimit: "+Float.toString(this.lowLimit)+
-					", depth: "+Float.toString(this.depth)+
-					", temp: "+Float.toString(this.temp)+					
-					", wspeed: "+Float.toString(this.waterSpeed)+
-					", pos: "+Double.toString(getLatitude())+"/"+Double.toString(getLongitude())+
-					", surfacedepth: "+Float.toString(this.surfaceDepth)+
-					", topofbottomdepth: "+Float.toString(this.topOfBottomDepth)+
-					", time: "+Integer.toString(this.timeOffset)+					
-					", speed: "+Float.toString(this.speed)+
-					", track: "+Float.toString(this.track)+
-					", alt: "+Float.toString(this.altitude)+
-					", rate: "+Integer.toString(this.rate);
+			return toLatitude(this.positionY);		
 		}
 	}
-
 }

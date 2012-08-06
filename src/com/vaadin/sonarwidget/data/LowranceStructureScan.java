@@ -13,7 +13,7 @@ import java.util.List;
  * @author samuli
  *
  */
-public class LowranceStructureScan implements Sonar {
+public class LowranceStructureScan extends AbstractLowrance {
 	private File file;
 	private Type type;
 	private static int HEADER_SIZE = 40;
@@ -102,23 +102,7 @@ public class LowranceStructureScan implements Sonar {
 		header.length -= HEADER_SIZE;
 		return header;
 	}
-	
-	private byte[] readBytes(RandomAccessFile stream, int len) throws IOException {
-		byte[] bytes = new byte[len];
-		stream.read(bytes, 0, len);
-		return bytes;
-	}
-	
-	private int toBigEndianInt(byte[] raw, int offset) {
-		return 0xFF000000&(raw[offset+3]<<24) | 0x00FF0000&(raw[offset+2]<<16) | 0x0000FF00&(raw[offset+1]<<8) | 0x000000FF&raw[offset];
-	}
-	
-	private float toBigEndianFloat(byte[] raw, int offset) {
-		return Float.intBitsToFloat(toBigEndianInt(raw, offset));
-	}
-	
-	
-	
+
 	private class Header {
 		int length = 0;
 		Type type;
@@ -136,12 +120,6 @@ public class LowranceStructureScan implements Sonar {
 		private float track;
 	
 		private byte[] soundings;
-
-		private static final double RAD_CONVERSION = 180/Math.PI;
-		private static final double EARTH_RADIUS = 6356752.3142;
-		private static final float FEET_TO_METERS = 0.3048f;
-		private static final float KNOTS = 1.852f;
-
 		
 		public StructurePing(RandomAccessFile inputstream, int len) throws IOException {
 			int pingheader = 104;
@@ -162,7 +140,7 @@ public class LowranceStructureScan implements Sonar {
 		
 		@Override
 		public float getDepth() {
-			return this.depth*FEET_TO_METERS;
+			return toMetres(this.depth);
 		}
 		
 		@Override
@@ -177,7 +155,7 @@ public class LowranceStructureScan implements Sonar {
 		
 		@Override
 		public float getSpeed() {
-			return this.speed*KNOTS;
+			return toKilometersPerHour(this.speed);
 		}
 		
 		@Override
@@ -187,7 +165,7 @@ public class LowranceStructureScan implements Sonar {
 		
 		@Override
 		public float getLowLimit() {
-			return this.lowLimit*FEET_TO_METERS;
+			return toMetres(this.lowLimit);
 		}
 		
 		@Override
@@ -202,30 +180,13 @@ public class LowranceStructureScan implements Sonar {
 		 */
 		@Override
 		public double getLongitude() {
-			return this.positionX/EARTH_RADIUS * RAD_CONVERSION;
+			return toLongitude(this.positionX);
 		}
 		
 		@Override
 		public double getLatitude() {
-			double temp = this.positionY/EARTH_RADIUS;
-			temp = Math.exp(temp);
-			temp = (2*Math.atan(temp))-(Math.PI/2);
-			return temp * RAD_CONVERSION;			
+			return toLatitude(this.positionY);
 		}
-		
-//		@Override
-//		public String toString() {
-//			return debug+"\n"+
-//					", lowlimit: "+getLowLimit()+
-//					", depth: "+getDepth()+
-//					", temp: "+getTemp()+					
-//					", pos: "+Double.toString(getLatitude())+"/"+Double.toString(getLongitude())+
-//					", time: "+getTimeStamp()+					
-//					", speed: "+getSpeed()+
-//					", track: "+getTrack()+
-//					"";
-//		}
+
 	}
-
-
 }
