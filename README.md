@@ -30,11 +30,12 @@ API documentation
 
 Planned features
 ---------------
-* Support for Humminbird DAT format
 
 Version history
 ---------------
-
+## 0.0.3 (TBD)
+* Support for Humminbird DAT/SON format
+ 
 ## 0.0.2 (2012-08-06)
 * Support for Lowrance SL2 format
 * API changes to select channel if log has multiple of them
@@ -46,7 +47,7 @@ Version history
 Licensing
 ---------
 
-Copyright 2012 Samuli Penttil‰
+Copyright 2012 Samuli Penttilä
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

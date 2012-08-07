@@ -7,6 +7,16 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Humminbird DAT/SON reader. On side scan
+ * mode will combine right and left channel
+ * into one channel.
+ * 
+ * Spec for format obtained from this thread
+ * http://www.xumba.scholleco.com/viewtopic.php?t=118&postdays=0&postorder=asc&start=0
+ * @author samuli
+ *
+ */
 public class HumminbirdSSI implements Sonar {
 	private static final double RAD_CONVERSION = 180/Math.PI;
 	private static final double EARTH_RADIUS = 6356752.3142;
