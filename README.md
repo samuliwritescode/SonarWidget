@@ -47,7 +47,7 @@ Version history
 Licensing
 ---------
 
-Copyright 2012 Samuli Penttilä
+Copyright 2012 Samuli Penttil‰
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
