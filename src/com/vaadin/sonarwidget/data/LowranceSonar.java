@@ -23,11 +23,14 @@ public class LowranceSonar extends AbstractLowrance {
 		this.file = file;
 		
 		DataInputStream datainput = new DataInputStream(new FileInputStream(file));
-		format = Integer.reverseBytes(datainput.readInt());		
-		blocksize = Integer.reverseBytes(datainput.readInt());
-		Short.reverseBytes(datainput.readShort());
-		blocks = (file.length()-10) / blocksize;
-		datainput.close();
+		try {
+			format = Integer.reverseBytes(datainput.readInt());		
+			blocksize = Integer.reverseBytes(datainput.readInt());
+			Short.reverseBytes(datainput.readShort());
+			blocks = (file.length()-10) / blocksize;
+		} finally {
+			datainput.close();
+		}
 	}
 	
 	public int getFormat() {
@@ -50,15 +53,20 @@ public class LowranceSonar extends AbstractLowrance {
 	public Ping[] getPingRange(int index, int length) throws IOException {
 		
 		DataInputStream inputstream = new DataInputStream(new FileInputStream(file));
-		inputstream.skip(10+blocksize*index);
 		
-		Ping[] retval = new LowrancePing[length];
-		
-		for(int loop=0; loop < length; loop++) {
-			retval[loop] = new LowrancePing(inputstream);
+		try {
+			inputstream.skip(10+blocksize*index);
+			
+			Ping[] retval = new LowrancePing[length];
+			
+			for(int loop=0; loop < length; loop++) {
+				retval[loop] = new LowrancePing(inputstream);
+			}
+			
+			return retval;
+		} finally {
+			inputstream.close();
 		}
-		
-		return retval;
 	}
 	
 	private class LowrancePing implements Ping {

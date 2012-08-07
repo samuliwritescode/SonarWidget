@@ -25,24 +25,26 @@ public class LowranceStructureScan extends AbstractLowrance {
 		this.type = channel;
 		
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		long ptr = 8;
-		raf.seek(ptr);
-		
-		while(true) {
-			Header blockHeader = getBlockHeader(raf);
-			if(blockHeader.type == channel) {
-				pointerTable.add(ptr);
-			}
-
-			ptr += blockHeader.length+HEADER_SIZE;
-			if(ptr >= raf.length()) {
-				break;
-			}
-
+		try {
+			long ptr = 8;
 			raf.seek(ptr);
+			
+			while(true) {
+				Header blockHeader = getBlockHeader(raf);
+				if(blockHeader.type == channel) {
+					pointerTable.add(ptr);
+				}
+	
+				ptr += blockHeader.length+HEADER_SIZE;
+				if(ptr >= raf.length()) {
+					break;
+				}
+	
+				raf.seek(ptr);
+			}
+		} finally {
+			raf.close();			
 		}
-		
-		raf.close();
 	}
 	
 	@Override
@@ -58,21 +60,23 @@ public class LowranceStructureScan extends AbstractLowrance {
 	@Override
 	public Ping[] getPingRange(int offset, int length) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		StructurePing[] retval = new StructurePing[length];
-		
-		if(offset+length > pointerTable.size()) {
-			raf.close();
-			throw new IndexOutOfBoundsException("offset+length beyond file length");
+		try {
+			StructurePing[] retval = new StructurePing[length];
+			
+			if(offset+length > pointerTable.size()) {
+				throw new IndexOutOfBoundsException("offset+length beyond file length");
+			}
+			
+			for(int loop=0; loop < length; loop++) {
+				raf.seek(pointerTable.get(offset+loop));
+				Header header = getBlockHeader(raf);
+				retval[loop] = new StructurePing(raf, header.length);
+			}
+			
+			return retval;
+		} finally {
+			raf.close();			
 		}
-		
-		for(int loop=0; loop < length; loop++) {
-			raf.seek(pointerTable.get(offset+loop));
-			Header header = getBlockHeader(raf);
-			retval[loop] = new StructurePing(raf, header.length);
-		}
-		
-		raf.close();
-		return retval;
 	}
 
 	private Header getBlockHeader(RandomAccessFile inputstream) throws IOException {
