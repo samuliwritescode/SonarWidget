@@ -13,6 +13,7 @@ import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
+import com.vaadin.sonarwidget.data.HumminbirdSSI;
 import com.vaadin.sonarwidget.data.LowranceSonar;
 import com.vaadin.sonarwidget.data.LowranceStructureScan;
 import com.vaadin.sonarwidget.data.Ping;
@@ -46,6 +47,8 @@ public class SonarWidget extends AbstractComponent{
 				sonar = new LowranceStructureScan(file, preferredChannel);
 			} else if(filenameExtension.equalsIgnoreCase("slg")) {
 				sonar = new LowranceSonar(file);
+			} else if(filenameExtension.equalsIgnoreCase("dat")) {
+				sonar = new HumminbirdSSI(file, preferredChannel);
 			}
 		} catch (IOException e) {			
 			throw new RuntimeException(e);

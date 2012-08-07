@@ -24,6 +24,8 @@ public class SonarWidgetApplication extends Application {
 		selector.addItem("SideScan Sonar0001.sl2");
 		selector.addItem("DownScan Sonar0001.sl2");
 		selector.addItem("2D Sonar0011.slg");
+		selector.addItem("SideScan R00001.DAT");
+		selector.addItem("DownScan R00001.DAT");
 		selector.addListener(new Property.ValueChangeListener() {
 			
 			@Override
