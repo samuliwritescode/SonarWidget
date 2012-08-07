@@ -1,6 +1,8 @@
 package com.vaadin.sonarwidget.data;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,6 +29,9 @@ public class HumminbirdSSI implements Sonar {
 	private int blocksize = 0;
 	private List<Integer> index = null;
 	private List<Integer> secondindex = null;
+	private int timestamp;
+	private int longitude;
+	private int latitude;
 	
 	public HumminbirdSSI(File file, Type channel) throws IOException {
 		this.type = channel;
@@ -55,40 +60,60 @@ public class HumminbirdSSI implements Sonar {
 
 	private List<Integer> getIDXData(File idxfile) throws FileNotFoundException,
 			IOException {
-		RandomAccessFile raf = new RandomAccessFile(idxfile, "r");
-		List<Integer> index = new ArrayList<Integer>();
-				
-		for(int loop=0; loop < raf.length()/8; loop++) {
-			int time = raf.readInt();
-			int offset = raf.readInt();
-			index.add(offset);
+		DataInputStream stream = new DataInputStream(new FileInputStream(idxfile));
+		try {
+			List<Integer> index = new ArrayList<Integer>();
+					
+			while(stream.available() > 0) {
+				int time = stream.readInt(); //no need
+				int offset = stream.readInt();
+				index.add(offset);
+			}
+			
+			return index;
+		} finally {
+			stream.close();
 		}
-		
-		return index;
 	}
 
 	private String initFromDAT(File file) throws FileNotFoundException, IOException {
-		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		raf.skipBytes(20);
-		int timestamp = raf.readInt();
-		int longitude = raf.readInt();
-		int latitude = raf.readInt();
-		
-		byte[] namebytes = new byte[10];
-		raf.read(namebytes, 0, 10);
-		String filename = new String(namebytes);
-		raf.skipBytes(2); //skip null character \0000
-		
-		int ks = raf.readInt();
-		int tk = raf.readInt();
-		blocksize = raf.readInt();
-		raf.close();
-		return filename;
+
+		DataInputStream stream = new DataInputStream(new FileInputStream(file));
+		try {
+			stream.skipBytes(20);
+			timestamp = stream.readInt();
+			longitude = stream.readInt();
+			latitude = stream.readInt();
+			
+			byte[] namebytes = new byte[10];
+			stream.read(namebytes, 0, 10);
+			String filename = new String(namebytes);
+			stream.skipBytes(2); //skip null character \0000
+			
+			int ks = stream.readInt(); //don't know what this is
+			int tk = stream.readInt(); //don't know what this is
+			blocksize = stream.readInt();
+			return filename;
+		} finally {
+			stream.close();
+		}
 	}
 
 	@Override
 	public long getLength() {
 		return index.size();
+	}
+	
+	public int getTimeStamp() {
+		return this.timestamp;
+	}
+	
+	public double getLongitude() {
+		return toLongitude(longitude);
+	}
+
+	public double getLatitude() {
+		return toLatitude(latitude);
 	}
 
 	@Override
@@ -129,14 +154,19 @@ public class HumminbirdSSI implements Sonar {
 	}
 	
 	private HumminbirdPing[] getPingRangeFromFile(int offset, int length, File file, List<Integer> index) throws IOException {
-		HumminbirdPing[] pings = new HumminbirdPing[length];
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		for(int loop=0; loop < length; loop++) {
-			raf.seek(index.get(offset+loop));
-			HumminbirdPing ping = new HumminbirdPing(raf, blocksize);
-			pings[loop] = ping;
+		
+		try {
+			HumminbirdPing[] pings = new HumminbirdPing[length];
+			for(int loop=0; loop < length; loop++) {
+				raf.seek(index.get(offset+loop));
+				HumminbirdPing ping = new HumminbirdPing(raf, blocksize);
+				pings[loop] = ping;
+			}
+			return pings;
+		} finally {
+			raf.close();
 		}
-		return pings;
 	}
 
 	@Override
@@ -145,7 +175,7 @@ public class HumminbirdSSI implements Sonar {
 	}
 	
 	/**
-	 * Convert Lowrance mercator meter format into WGS84.
+	 * Convert Lowrance/Humminbird mercator meter format into WGS84.
 	 * Used this article as a reference: http://www.oziexplorer3.com/eng/eagle.html
 	 * @return
 	 */
@@ -201,19 +231,19 @@ public class HumminbirdSSI implements Sonar {
 
 		@Override
 		public float getLowLimit() {
-			// TODO Auto-generated method stub
+			// Humminbird file does not provide this
 			return 0;
 		}
 
 		@Override
 		public float getTemp() {
-			// TODO Auto-generated method stub
+			// Humminbird file does not provide this
 			return 0;
 		}
 
 		@Override
 		public float getDepth() {
-			// TODO Auto-generated method stub
+			// Humminbird file does not provide this
 			return 0;
 		}
 
