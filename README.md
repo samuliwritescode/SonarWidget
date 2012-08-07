@@ -31,6 +31,10 @@ API documentation
 Planned features
 ---------------
 
+Known issues
+---------------
+* Depth and temperature data will not display with Humminbird files
+
 Version history
 ---------------
 ## 0.0.3 (TBD)
