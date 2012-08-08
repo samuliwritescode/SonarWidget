@@ -233,34 +233,20 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		
 		ImageData data = context.getImageData(0, 0, context.getCanvas().getOffsetWidth(), getElement().getClientHeight());
 		CanvasPixelArray array = data.getData();
-		for(int x = 0; x < array.getLength(); x++) {
-			int color = array.get(x);
+		for(int x = 0; x < array.getLength(); x+=4) {
+			int red = array.get(x);
+			int green = array.get(x+1);
+			int blue = array.get(x+2);
+			//int alpha = array.get(x+3);
 			
-			switch(x%4) {
-			case 0: //red
-				if((colormask&1) != 0) {
-					array.set(x, color);
-				} else {
-					array.set(x, 0);
-				}
-				break;
-			case 1: //green 
-				if((colormask&2) != 0) {
-					array.set(x, color);
-				} else {
-					array.set(x, 0);
-				}
-				break;
-			case 2: //blue
-				if((colormask&4) != 0) {
-					array.set(x, color);
-				} else {
-					array.set(x, 0);
-				}
-				break;
-			case 3: //alpha
-				break;
-			}
+			red = (colormask&1)!=0?red:0;
+			green = (colormask&2)!=0?green:0;
+			blue = (colormask&4)!=0?blue:0;
+			
+			array.set(x, red);
+			array.set(x+1, green);
+			array.set(x+2, blue);
+			//array.set(x+3, alpha);
 		}
 		
 		context.putImageData(data, 0, 0);
