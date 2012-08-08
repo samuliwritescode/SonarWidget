@@ -39,6 +39,7 @@ Version history
 ---------------
 ## 0.0.3 (TBD)
 * Support for Humminbird DAT/SON format
+* Colors
  
 ## 0.0.2 (2012-08-06)
 * Support for Lowrance SL2 format

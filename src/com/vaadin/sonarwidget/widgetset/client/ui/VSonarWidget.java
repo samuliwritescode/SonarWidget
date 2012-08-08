@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.canvas.client.Canvas;
+import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
+import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.Style.Overflow;
@@ -45,6 +47,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private boolean sidescan;
 	private Canvas ruler;
 	private VerticalPanel labels;
+	private int colormask = 0;
 
 	public VSonarWidget() {
 		super();
@@ -136,6 +139,10 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			this.overlay = uidl.getBooleanAttribute("overlay");
 		}
 		
+		if(uidl.hasAttribute("color")) {
+			this.colormask = uidl.getIntAttribute("color");
+		}
+		
 		if(uidl.hasAttribute("sidesonar")) {
 			this.sidescan = uidl.getBooleanAttribute("sidesonar");
 		}
@@ -160,7 +167,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			}
 			
 			if(uidl.hasAttribute("pic")) {
-				drawBitmap(offset, uidl.getStringAttribute("pic"), context);	
+				drawBitmap(offset, uidl.getStringAttribute("pic"), context, canvas);	
 			}	
 			
 			drawOverlay(offset, context);
@@ -175,7 +182,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	 * @param name
 	 * @param context
 	 */
-	private void drawBitmap(final int offset, final String name, final Context2d context) {
+	private void drawBitmap(final int offset, final String name, final Context2d context, final Canvas canvas) {
 		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(5));
 		RootPanel.get().add(image);
 		image.setVisible(false);
@@ -185,26 +192,78 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			
 			@Override
 			public void onLoad(LoadEvent event) {
-				context.setGlobalAlpha(0);
+				canvas.getElement().getStyle().setOpacity(0);
+				context.drawImage(
+					ImageElement.as(
+						image.getElement()
+					), 
+					0, 
+					0, 
+					context.getCanvas().getOffsetWidth(), 
+					getElement().getClientHeight()
+				);
+				
+				colorizeImage(context);
+				drawOverlay(offset, context);
+				
 				new Timer() {
 					private int alpha = 0;
 					@Override
 					public void run() {
-						
+									
+						canvas.getElement().getStyle().setOpacity(alpha*0.1);
+
 						//when animation has reached
 						//zero opacity stop animation timer.
 						if(alpha >= 10) {
 							this.cancel();
 						}
 						
-						context.setGlobalAlpha(alpha*0.1);
-						context.drawImage(ImageElement.as(image.getElement()), 0, 0, context.getCanvas().getOffsetWidth(), getElement().getClientHeight());
-						drawOverlay(offset, context);
 						alpha++;
 					}
 				}.scheduleRepeating(24);
 			}
 		});
+	}
+	
+	private void colorizeImage(Context2d context) {
+		if(this.colormask == 0) {
+			return;
+		}
+		
+		ImageData data = context.getImageData(0, 0, context.getCanvas().getOffsetWidth(), getElement().getClientHeight());
+		CanvasPixelArray array = data.getData();
+		for(int x = 0; x < array.getLength(); x++) {
+			int color = array.get(x);
+			
+			switch(x%4) {
+			case 0: //red
+				if((colormask&1) != 0) {
+					array.set(x, color);
+				} else {
+					array.set(x, 0);
+				}
+				break;
+			case 1: //green 
+				if((colormask&2) != 0) {
+					array.set(x, color);
+				} else {
+					array.set(x, 0);
+				}
+				break;
+			case 2: //blue
+				if((colormask&4) != 0) {
+					array.set(x, color);
+				} else {
+					array.set(x, 0);
+				}
+				break;
+			case 3: //alpha
+				break;
+			}
+		}
+		
+		context.putImageData(data, 0, 0);
 	}
 
 	/**

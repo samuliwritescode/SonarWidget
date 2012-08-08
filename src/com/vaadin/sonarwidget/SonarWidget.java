@@ -32,6 +32,11 @@ public class SonarWidget extends AbstractComponent{
 	private Sonar sonar;
 	private Queue<Frame> offsets;
 	private boolean overlay = true;
+	private int color = 0;
+	
+	public static int COLOR_RED = 1;
+	public static int COLOR_GREEN = 2;
+	public static int COLOR_BLUE = 4;
 	
 	private static class Frame {
 		public Integer offset;
@@ -60,6 +65,7 @@ public class SonarWidget extends AbstractComponent{
 	public void paintContent(PaintTarget target) throws PaintException {
 		super.paintContent(target);
 		
+		target.addAttribute("color", color);
 		target.addAttribute("overlay", overlay);
 		target.addAttribute("sidesonar", sonar.getType() == Type.eSideScan);
 
@@ -142,6 +148,11 @@ public class SonarWidget extends AbstractComponent{
 
 	public void setOverlay(boolean booleanValue) {
 		this.overlay = booleanValue;
+		requestRepaint();
+	}
+	
+	public void setColor(int color) {
+		this.color = color;
 		requestRepaint();
 	}
 	

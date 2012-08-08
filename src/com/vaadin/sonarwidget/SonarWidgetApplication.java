@@ -44,6 +44,8 @@ public class SonarWidgetApplication extends Application {
 
 				sonarWidget.setHeight("300px");
 				sonarWidget.setWidth("100%");
+				sonarWidget.setColor(SonarWidget.COLOR_RED | SonarWidget.COLOR_GREEN);
+				sonarWidget.setOverlay(false);
 				sonarLayout.addComponent(sonarWidget);
 			}
 		});
