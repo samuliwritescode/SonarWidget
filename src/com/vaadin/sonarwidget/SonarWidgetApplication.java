@@ -10,15 +10,49 @@ import com.vaadin.sonarwidget.data.Sonar.Type;
 import com.vaadin.ui.*;
 
 public class SonarWidgetApplication extends Application {
+	private String selectedFile = "";
+	private boolean overlay = false;
+	private int colorbits = 0;
+	private VerticalLayout sonarLayout;
 	
 	@Override
 	public void init() {
 		Window mainWindow = new Window("Sonarwidget Application");
 
 		VerticalLayout layout = new VerticalLayout();
-		final VerticalLayout sonarLayout = new VerticalLayout();
+		HorizontalLayout controlLayout = new HorizontalLayout();
+		sonarLayout = new VerticalLayout();		
 		ComboBox selector = new ComboBox("Select file");
+		CheckBox overlayCheck = new CheckBox("Overlay");
+		OptionGroup colorsettings = new OptionGroup("Color settings");
 		
+		controlLayout.setSpacing(true);
+		
+		colorsettings.addItem(new Integer(0));
+		
+		colorsettings.addItem(
+				SonarWidget.COLOR_BLUE |
+				SonarWidget.COLOR_GREEN
+		);
+				
+		colorsettings.addItem(		
+				SonarWidget.COLOR_BLUE | 
+				SonarWidget.COLOR_GREEN | 
+				SonarWidget.COLOR_RED |
+				SonarWidget.COLOR_MAPCOLORS
+		);
+		
+		colorsettings.addItem(			
+				SonarWidget.COLOR_BLUE | 
+				SonarWidget.COLOR_GREEN | 
+				SonarWidget.COLOR_RED |
+				SonarWidget.COLOR_INVERSE
+		);
+		
+		colorsettings.setItemCaption(0, "BW");
+		colorsettings.setItemCaption(6, "Bluish");
+		colorsettings.setItemCaption(23, "Mapped colors");
+		colorsettings.setItemCaption(15, "Inverse BW");
 		selector.setImmediate(true);
 		selector.setNullSelectionAllowed(false);
 		selector.addItem("SideScan Sonar0001.sl2");
@@ -29,33 +63,58 @@ public class SonarWidgetApplication extends Application {
 		selector.addListener(new Property.ValueChangeListener() {
 			
 			@Override
-			public void valueChange(ValueChangeEvent event) {
-				sonarLayout.removeAllComponents();
-				String selected = (String)event.getProperty().getValue();
-				
-				Pattern pattern = Pattern.compile("\\S+");
-				Matcher matcher = pattern.matcher(selected);
-				matcher.find();
-				Type type = matcher.group().equalsIgnoreCase("SideScan")?Type.eSideScan:Type.eDownScan;
-				matcher.find();
-				String filename = matcher.group();
-				
-				SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/sonar/"+filename), type);
-
-				sonarWidget.setHeight("300px");
-				sonarWidget.setWidth("100%");
-				sonarWidget.setColor(SonarWidget.COLOR_RED | SonarWidget.COLOR_GREEN);
-				sonarWidget.setOverlay(false);
-				sonarLayout.addComponent(sonarWidget);
+			public void valueChange(ValueChangeEvent event) {				
+				selectedFile = (String)event.getProperty().getValue();
+				drawSonarWidget();
 			}
 		});
 		
-		selector.select("SideScan Sonar0001.sl2");
+		overlayCheck.setImmediate(true);
+		overlayCheck.addListener(new Property.ValueChangeListener() {
+			
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				overlay = (Boolean)event.getProperty().getValue();
+				drawSonarWidget();
+			}
+		});
 		
+		colorsettings.setImmediate(true);
+		colorsettings.addListener(new Property.ValueChangeListener() {
+			
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				colorbits = (Integer)event.getProperty().getValue();
+				drawSonarWidget();
+			}
+		});
 		
-		layout.addComponent(selector);
+		selector.select("2D Sonar0011.slg");
+		
+		controlLayout.addComponent(selector);
+		controlLayout.addComponent(overlayCheck);
+		controlLayout.addComponent(colorsettings);
+		layout.addComponent(controlLayout);
 		layout.addComponent(sonarLayout);
 		mainWindow.addComponent(layout);
 		setMainWindow(mainWindow);	
+	}
+	
+	private void drawSonarWidget() {
+		sonarLayout.removeAllComponents();
+		Pattern pattern = Pattern.compile("\\S+");
+		Matcher matcher = pattern.matcher(selectedFile);
+		matcher.find();
+		Type type = matcher.group().equalsIgnoreCase("SideScan")?Type.eSideScan:Type.eDownScan;
+		matcher.find();
+		String filename = matcher.group();
+		
+		SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/sonar/"+filename), type);
+
+		sonarWidget.setHeight("300px");
+		sonarWidget.setWidth("100%");
+		sonarWidget.setColor(colorbits);
+		sonarWidget.setOverlay(overlay);
+		sonarLayout.addComponent(sonarWidget);
 	}
 }

@@ -37,6 +37,11 @@ public class SonarWidget extends AbstractComponent{
 	public static int COLOR_RED = 1;
 	public static int COLOR_GREEN = 2;
 	public static int COLOR_BLUE = 4;
+	public static int COLOR_INVERSE = 8;
+	public static int COLOR_MAPCOLORS = 16;
+	public static int COLOR_MORECONTRAST = 32;
+	public static int COLOR_LESSCONTRAST = 64;
+	public static int COLOR_CONTRASTBOOST = 128;
 	
 	private static class Frame {
 		public Integer offset;

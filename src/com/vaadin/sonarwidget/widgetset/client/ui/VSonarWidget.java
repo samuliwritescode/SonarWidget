@@ -48,6 +48,15 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	private Canvas ruler;
 	private VerticalPanel labels;
 	private int colormask = 0;
+	
+	public static int COLOR_RED = 1;
+	public static int COLOR_GREEN = 2;
+	public static int COLOR_BLUE = 4;
+	public static int COLOR_INVERSE = 8;
+	public static int COLOR_MAPCOLORS = 16;
+	public static int COLOR_MORECONTRAST = 32;
+	public static int COLOR_LESSCONTRAST = 64;
+	public static int COLOR_CONTRASTBOOST = 128;
 
 	public VSonarWidget() {
 		super();
@@ -231,6 +240,11 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			return;
 		}
 		
+		int shift = 1;
+		if((colormask&COLOR_CONTRASTBOOST) != 0) {
+			shift = 2;
+		}
+		
 		ImageData data = context.getImageData(0, 0, context.getCanvas().getOffsetWidth(), getElement().getClientHeight());
 		CanvasPixelArray array = data.getData();
 		for(int x = 0; x < array.getLength(); x+=4) {
@@ -239,13 +253,41 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			int blue = array.get(x+2);
 			//int alpha = array.get(x+3);
 			
-			red = (colormask&1)!=0?red:0;
-			green = (colormask&2)!=0?green:0;
-			blue = (colormask&4)!=0?blue:0;
+			red = (colormask&COLOR_RED)!=0?red:0;
+			green = (colormask&COLOR_GREEN)!=0?green:0;
+			blue = (colormask&COLOR_BLUE)!=0?blue:0;
 			
-			array.set(x, red);
-			array.set(x+1, green);
-			array.set(x+2, blue);
+			if((colormask&COLOR_INVERSE) !=0) {
+				red = 255-red;
+				green = 255-green;
+				blue = 255-blue;
+			}
+
+			if((colormask&COLOR_MORECONTRAST) != 0) {
+				red <<= shift;
+				green <<= shift;
+				blue <<= shift;
+				
+				red = Math.min(255, red);
+				green = Math.min(255, green);
+				blue = Math.min(255, blue);
+			}
+			
+			if((colormask&COLOR_LESSCONTRAST) != 0) {
+				red >>= shift;
+				green >>= shift;
+				blue >>= shift;
+			}
+			
+			if((colormask&COLOR_MAPCOLORS) != 0) {
+				red &= 0xC0;
+				green &= 0x70;
+				blue &= 0x1F;
+			}
+			
+			array.set(x, red&0xFF);
+			array.set(x+1, green&0xFF);
+			array.set(x+2, blue&0xFF);
 			//array.set(x+3, alpha);
 		}
 		
