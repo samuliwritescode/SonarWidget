@@ -281,8 +281,8 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 			
 			if((colormask&COLOR_MAPCOLORS) != 0) {
 				red &= 0xC0;
-				green &= 0x70;
-				blue &= 0x1F;
+				green &= 0x60;
+				blue &= 0x3F;
 			}
 			
 			array.set(x, red&0xFF);
