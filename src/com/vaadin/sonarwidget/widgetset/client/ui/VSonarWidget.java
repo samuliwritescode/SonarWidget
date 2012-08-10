@@ -95,6 +95,11 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		return canvas;
 	}
 	
+	public void clearCanvas(Canvas canvas) {
+		final Context2d context = canvas.getContext2d();
+		context.clearRect(0, 0, canvas.getCoordinateSpaceWidth(), canvas.getCoordinateSpaceHeight());
+	}
+	
 	@Override
 	public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
 		if (client.updateComponent(this, uidl, true)) {

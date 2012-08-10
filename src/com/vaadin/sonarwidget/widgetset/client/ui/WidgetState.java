@@ -68,8 +68,8 @@ class WidgetState {
 			int offset = uidl.getIntAttribute("offset");
 
 			Canvas canvas = this.canvases.get((int)(offset/tilewidth));
+			ui.clearCanvas(canvas);
 			final Context2d context = canvas.getContext2d();
-			context.clearRect(0, 0, tilewidth, canvas.getCoordinateSpaceHeight());
 			
 			if(uidl.hasAttribute("lowlimits")) {
 				model.appendLowlimit(uidl.getStringArrayAttribute("lowlimits"), offset);			
