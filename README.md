@@ -34,6 +34,7 @@ Planned features
 Known issues
 ---------------
 * Depth and temperature data will not display with Humminbird files
+* Widget depth cursor is misaligned when browser window is vertically scrolled
 
 Version history
 ---------------
