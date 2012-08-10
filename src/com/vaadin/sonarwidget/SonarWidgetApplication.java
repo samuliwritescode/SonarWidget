@@ -111,7 +111,12 @@ public class SonarWidgetApplication extends Application {
 		
 		SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/sonar/"+filename), type);
 
-		sonarWidget.setHeight("300px");
+		if(type == Type.eSideScan) {
+			sonarWidget.setHeight("600px");
+		} else {
+			sonarWidget.setHeight("300px");
+		}
+		
 		sonarWidget.setWidth("100%");
 		sonarWidget.setColor(colorbits);
 		sonarWidget.setOverlay(overlay);
