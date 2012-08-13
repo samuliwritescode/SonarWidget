@@ -30,6 +30,7 @@ API documentation
 
 Planned features
 ---------------
+* Smoothen depth change switch
 
 Known issues
 ---------------

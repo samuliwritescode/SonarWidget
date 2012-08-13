@@ -118,10 +118,6 @@ class WidgetState {
 		}
 	}
 
-	public void addCanvas(Canvas canvas) {
-		this.canvases.add(canvas);
-	}
-
 	public void scrollEvent(int horizontalScrollPosition) {
 		fetchSonarData(horizontalScrollPosition);
 	}
