@@ -93,7 +93,7 @@ class WidgetState {
 	
 	private void initialize(int pingcount) {
 		model = new DepthData(pingcount);
-		ui.initialize(pingcount);
+		ui.clearWidget(pingcount);
 		ui.setModel(model);
 		
 		for(int loop=0; loop < pingcount; loop+=WidgetState.tilewidth) {

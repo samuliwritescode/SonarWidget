@@ -109,7 +109,7 @@ public class SonarWidgetApplication extends Application {
 		matcher.find();
 		String filename = matcher.group();
 		
-		SonarWidget sonarWidget = new SonarWidget(new File("/Users/samuli/sonar/"+filename), type);
+		SonarWidget sonarWidget = new SonarWidget(new File("/Users/cape/Code/sonar/"+filename), type);
 
 		if(type == Type.eSideScan) {
 			sonarWidget.setHeight("600px");

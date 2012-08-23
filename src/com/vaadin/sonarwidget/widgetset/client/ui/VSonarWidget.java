@@ -74,7 +74,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		addScrollHandler(this);
 	}
 	
-	public void initialize(int totalwidth) {		
+	public void clearWidget(int totalwidth) {		
 		vert.clear();
 		vert.setWidth(totalwidth+"px");
 		vert.add(labels);
