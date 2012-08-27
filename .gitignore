@@ -1,4 +1,3 @@
-/WebContent/VAADIN/widgetsets/
-/build/
-/WebContent/WEB-INF/lib/
 .settings/
+.classpath
+.project

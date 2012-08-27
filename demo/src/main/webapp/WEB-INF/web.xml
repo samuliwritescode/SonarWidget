@@ -20,7 +20,7 @@
 			<description>
 			Application widgetset</description>
 			<param-name>widgetset</param-name>
-			<param-value>com.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset</param-value>
+			<param-value>com.vaadin.sonarwidget.widgetset.SonarwidgetDemoWidgetset</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>
