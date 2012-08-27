@@ -90,6 +90,17 @@
 				</executions>
 			</plugin>
 
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>7.2.2.v20101205</version>
+				<configuration>
+					<webAppConfig>
+						<contextPath>/SonarWidget</contextPath>
+					</webAppConfig>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 	<repositories>
