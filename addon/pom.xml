@@ -51,7 +51,13 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<archive>
-						<manifestFile>WebContent/META-INF/MANIFEST.MF</manifestFile>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Vaadin-Package-Version>1</Vaadin-Package-Version>
+							<Vaadin-Widgetsets>com.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset</Vaadin-Widgetsets>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>

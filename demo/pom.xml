@@ -4,7 +4,7 @@
 
 	<groupId>org.vaadin.addons</groupId>
 	<artifactId>sonarwidget-demo</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>war</packaging>
 
 	<name>SonarWidget add-on for Vaadin</name>
