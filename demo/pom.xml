@@ -130,7 +130,6 @@
 			<groupId>org.vaadin.addons</groupId>
 			<artifactId>sonarwidget</artifactId>
 			<version>0.0.3-SNAPSHOT</version>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
