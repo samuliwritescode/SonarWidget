@@ -1,4 +1,4 @@
-package com.vaadin.sonarwidget;
+package com.vaadin.sonarwidgetdemo;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.vaadin.Application;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.sonarwidget.SonarWidget;
 import com.vaadin.sonarwidget.data.Sonar.Type;
 import com.vaadin.ui.*;
 
