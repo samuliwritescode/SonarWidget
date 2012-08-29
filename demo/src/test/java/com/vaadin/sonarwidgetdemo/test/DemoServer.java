@@ -9,7 +9,7 @@ public class DemoServer {
         WebAppContext ctx = new WebAppContext();
 
         ctx.setContextPath("/SonarWidget");
-        ctx.setResourceBase("src/main/webapp/");
+        ctx.setResourceBase("target/sonarwidget-demo-0.0.1/");
         ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
         
         server.setHandler(ctx);
