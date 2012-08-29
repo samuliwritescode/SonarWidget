@@ -18,7 +18,6 @@
 	</properties>
 
 	<build>
-
 		<resources>
 			<resource>
 				<directory>src/main/java/</directory>
@@ -78,15 +77,6 @@
 				<groupId>com.vaadin</groupId>
 				<artifactId>vaadin-maven-plugin</artifactId>
 				<version>1.0.2</version>
-				<executions>
-					<execution>
-						<configuration>
-						</configuration>
-						<goals>
-							<goal>update-widgetset</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 
 			<plugin>
@@ -149,6 +139,12 @@
 			<version>1.0.0.GA</version>
 			<classifier>sources</classifier>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>7.2.2.v20101205</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
