@@ -45,7 +45,7 @@
 				<artifactId>gwt-maven-plugin</artifactId>
 				<version>${gwt.plugin.version}</version>
 				<configuration>
-					<webappDirectory>${basedir}/src/main/webapp/VAADIN/widgetsets</webappDirectory>
+					<webappDirectory>${project.build.directory}/${project.build.finalName}/VAADIN/widgetsets</webappDirectory>
 					<extraJvmArgs>-Xmx512M -Xss1024k</extraJvmArgs>
 					<runTarget>SonarWidget</runTarget>
 					<noServer>true</noServer>
@@ -84,6 +84,7 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>7.2.2.v20101205</version>
 				<configuration>
+					<webAppSourceDirectory>${project.build.directory}/${project.build.finalName}</webAppSourceDirectory>
 					<scanIntervalSeconds>5</scanIntervalSeconds>
 					<webAppConfig>
 						<contextPath>/SonarWidget</contextPath>
