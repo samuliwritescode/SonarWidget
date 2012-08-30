@@ -15,6 +15,7 @@
 		<vaadin.version>6.8.2</vaadin.version>
 		<gwt.version>2.3.0</gwt.version>
 		<gwt.plugin.version>2.2.0</gwt.plugin.version>
+		<sonarwidget.version>0.0.3-SNAPSHOT</sonarwidget.version>
 	</properties>
 
 	<build>
@@ -120,7 +121,7 @@
 		<dependency>
 			<groupId>org.vaadin.addons</groupId>
 			<artifactId>sonarwidget</artifactId>
-			<version>0.0.3-SNAPSHOT</version>
+			<version>${sonarwidget.version}</version>			 
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>

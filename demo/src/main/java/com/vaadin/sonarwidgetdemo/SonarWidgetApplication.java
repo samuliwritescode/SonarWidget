@@ -8,7 +8,12 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.sonarwidget.SonarWidget;
 import com.vaadin.sonarwidget.data.Sonar.Type;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 public class SonarWidgetApplication extends Application {
 	private String selectedFile = "";
