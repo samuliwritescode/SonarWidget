@@ -10,7 +10,7 @@ API is simple and clean. Data is uploaded to web browser in
 compressed format and only in demand.
 
 ## System requirements
-* Vaadin 6.x
+* Vaadin 7.x
 * HTML5 canvas compliant browser. Tested with Firefox 9, Chrome 19, Safari 5, IE 9
 
 API documentation
@@ -42,6 +42,7 @@ Version history
 ## 0.0.3 (TBD)
 * Support for Humminbird DAT/SON format
 * Colors
+* Vaadin 7
  
 ## 0.0.2 (2012-08-06)
 * Support for Lowrance SL2 format
