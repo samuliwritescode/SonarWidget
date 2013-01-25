@@ -9,11 +9,11 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Sonarwidget Application</servlet-name>
-		<servlet-class>com.vaadin.terminal.gwt.server.ApplicationServlet</servlet-class>
+		<servlet-class>com.vaadin.server.VaadinServlet</servlet-class>
 		<init-param>
 			<description>
 			Vaadin application class to start</description>
-			<param-name>application</param-name>
+			<param-name>UI</param-name>
 			<param-value>com.vaadin.sonarwidgetdemo.SonarWidgetApplication</param-value>
 		</init-param>
 		<init-param>

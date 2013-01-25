@@ -12,9 +12,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<vaadin.version>6.8.2</vaadin.version>
-		<gwt.version>2.3.0</gwt.version>
-		<gwt.plugin.version>2.2.0</gwt.plugin.version>
+		<vaadin.version>7.0.0.rc2</vaadin.version>
+		<vaadin.plugin.version>${vaadin.version}</vaadin.plugin.version>
 		<sonarwidget.version>0.0.3-SNAPSHOT</sonarwidget.version>
 	</properties>
 
@@ -31,7 +30,18 @@
 		</resources>
 
 		<plugins>
-
+            <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>2.4.1</version>
+                    <configuration>
+                            <filesets>
+                                    <fileset>
+                                            <directory>src/main/webapp/VAADIN/</directory>
+                                    </fileset>
+                            </filesets>
+                    </configuration>
+            </plugin>
+                        
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -40,45 +50,42 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>gwt-maven-plugin</artifactId>
-				<version>${gwt.plugin.version}</version>
-				<configuration>
-					<webappDirectory>${project.build.directory}/${project.build.finalName}/VAADIN/widgetsets</webappDirectory>
-					<extraJvmArgs>-Xmx512M -Xss1024k</extraJvmArgs>
-					<runTarget>SonarWidget</runTarget>
-					<noServer>true</noServer>
-					<port>8080</port>
-					<compileReport>false</compileReport>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<!-- <goal>resources</goal> -->
-							<goal>compile</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>com.google.gwt</groupId>
-						<artifactId>gwt-dev</artifactId>
-						<version>${gwt.version}</version>
-					</dependency>
-					<dependency>
-						<groupId>com.google.gwt</groupId>
-						<artifactId>gwt-user</artifactId>
-						<version>${gwt.version}</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>com.vaadin</groupId>
-				<artifactId>vaadin-maven-plugin</artifactId>
-				<version>1.0.2</version>
-			</plugin>
+	
+            <plugin>
+	            <groupId>com.vaadin</groupId>
+	            <artifactId>vaadin-maven-plugin</artifactId>
+	            <version>${vaadin.plugin.version}</version>
+	            <configuration>
+	                    <extraJvmArgs>-Xmx512M -Xss1024k</extraJvmArgs>
+	                    <!-- <runTarget>mobilemail</runTarget> -->
+	                    <!-- We are doing "inplace" but into subdir VAADIN/widgetsets. This
+	                            way compatible with Vaadin eclipse plugin. -->
+	                    <webappDirectory>${basedir}/src/main/webapp/VAADIN/widgetsets</webappDirectory>
+	                    <hostedWebapp>${basedir}/src/main/webapp/VAADIN/widgetsets
+	                    </hostedWebapp>
+	                    <noServer>true</noServer>
+	                    <!-- Remove draftCompile when project is ready -->
+	                    <draftCompile>false</draftCompile>
+	                    <compileReport>true</compileReport>
+	                    <style>OBF</style>
+	                    <strict>true</strict>
+	                    <runTarget>SonarWidget</runTarget>
+	            </configuration>
+	            <executions>
+	                    <execution>
+	                            <configuration>
+	                                    <!-- if you don't specify any modules, the plugin will find them -->
+	                                    <!-- <modules> <module>com.vaadin.demo.mobilemail.gwt.ColorPickerWidgetSet</module>
+	                                            </modules> -->
+	                            </configuration>
+	                            <goals>
+	                                    <goal>resources</goal>
+	                                    <goal>update-widgetset</goal>
+	                                    <goal>compile</goal>
+	                            </goals>
+	                    </execution>
+	            </executions>
+            </plugin>
 
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
@@ -92,8 +99,45 @@
 					</webAppConfig>
 				</configuration>
 			</plugin>
-
 		</plugins>
+		
+                <pluginManagement>
+                        <plugins>
+                                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                                <plugin>
+                                        <groupId>org.eclipse.m2e</groupId>
+                                        <artifactId>lifecycle-mapping</artifactId>
+                                        <version>1.0.0</version>
+                                        <configuration>
+                                                <lifecycleMappingMetadata>
+                                                        <pluginExecutions>
+                                                                <pluginExecution>
+                                                                        <pluginExecutionFilter>
+                                                                                <groupId>com.vaadin</groupId>
+                                                                                <artifactId>
+                                                                                        vaadin-maven-plugin
+                                                                                </artifactId>
+                                                                                <versionRange>
+                                                                                        [7.0.0.rc2,)
+                                                                                </versionRange>
+                                                                                <goals>
+                                                                                        <goal>resources</goal>
+                                                                                        <goal>update-widgetset</goal>
+                                                                                        <goal>compile</goal>
+                                                                                </goals>
+                                                                        </pluginExecutionFilter>
+                                                                        <action>
+                                                                                <ignore></ignore>
+                                                                        </action>
+                                                                </pluginExecution>
+                                                        </pluginExecutions>
+                                                </lifecycleMappingMetadata>
+                                        </configuration>
+                                </plugin>
+                        </plugins>
+                </pluginManagement>
+		
+		
 	</build>
 	<repositories>
 		<repository>
@@ -114,40 +158,44 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin</artifactId>
-			<version>${vaadin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.vaadin.addons</groupId>
-			<artifactId>sonarwidget</artifactId>
-			<version>${sonarwidget.version}</version>			 
-		</dependency>
-		<dependency>
-			<groupId>com.google.gwt</groupId>
-			<artifactId>gwt-user</artifactId>
-			<version>${gwt.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>1.0.0.GA</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>1.0.0.GA</version>
-			<classifier>sources</classifier>
-			<scope>provided</scope>
-		</dependency>
+	    		<groupId>com.vaadin</groupId>
+	            <artifactId>vaadin-server</artifactId>
+	            <version>${vaadin.version}</version>
+	    </dependency>
+	    <dependency>
+	            <groupId>com.vaadin</groupId>
+	            <artifactId>vaadin-client-compiled</artifactId>
+	            <version>${vaadin.version}</version>
+	    </dependency>
+	    <dependency>
+	            <groupId>com.vaadin</groupId>
+	            <artifactId>vaadin-client</artifactId>
+	            <version>${vaadin.version}</version>
+	            <scope>provided</scope>
+	    </dependency>
+	    <dependency>
+	            <groupId>com.vaadin</groupId>
+	            <artifactId>vaadin-themes</artifactId>
+	            <version>${vaadin.version}</version>
+	    </dependency>
+        <dependency>
+               <groupId>javax.servlet</groupId>
+               <artifactId>servlet-api</artifactId>
+               <version>2.4</version>
+               <scope>provided</scope>
+       </dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>
 			<version>7.2.2.v20101205</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.vaadin.addons</groupId>
+            <artifactId>sonarwidget</artifactId>
+        	<version>${sonarwidget.version}</version>                        
+	   	</dependency>
 	</dependencies>
 
 </project>

@@ -13,21 +13,20 @@ import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
+import com.vaadin.server.PaintException;
+import com.vaadin.server.PaintTarget;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.sonarwidget.data.HumminbirdSSI;
 import com.vaadin.sonarwidget.data.LowranceSonar;
 import com.vaadin.sonarwidget.data.LowranceStructureScan;
 import com.vaadin.sonarwidget.data.Ping;
 import com.vaadin.sonarwidget.data.Sonar;
 import com.vaadin.sonarwidget.data.Sonar.Type;
-import com.vaadin.terminal.PaintException;
-import com.vaadin.terminal.PaintTarget;
-import com.vaadin.terminal.StreamResource;
-import com.vaadin.terminal.StreamResource.StreamSource;
 import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.ClientWidget;
+import com.vaadin.ui.LegacyComponent;
 
-@ClientWidget(com.vaadin.sonarwidget.widgetset.client.ui.VSonarWidget.class)
-public class SonarWidget extends AbstractComponent{
+public class SonarWidget extends AbstractComponent implements LegacyComponent {
 
 	private Sonar sonar;
 	private Queue<Frame> offsets;
@@ -68,7 +67,6 @@ public class SonarWidget extends AbstractComponent{
 	
 	@Override
 	public void paintContent(PaintTarget target) throws PaintException {
-		super.paintContent(target);
 		
 		target.addAttribute("color", color);
 		target.addAttribute("overlay", overlay);
@@ -124,8 +122,7 @@ public class SonarWidget extends AbstractComponent{
 			        }
 				}
 			}, 
-			String.format("frame%d-%d.jpg", frame.offset, new Date().getTime()), 
-			getApplication()
+			String.format("frame%d-%d.jpg", frame.offset, new Date().getTime())
 			);
 			
 			target.addAttribute("pic", streamResource);

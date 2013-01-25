@@ -3,28 +3,26 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vaadin.Application;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.server.VaadinRequest;
 import com.vaadin.sonarwidget.SonarWidget;
 import com.vaadin.sonarwidget.data.Sonar.Type;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 
-public class SonarWidgetApplication extends Application {
+public class SonarWidgetApplication extends UI {
 	private String selectedFile = "";
 	private boolean overlay = false;
 	private int colorbits = 0;
 	private VerticalLayout sonarLayout;
 	
 	@Override
-	public void init() {
-		Window mainWindow = new Window("Sonarwidget Application");
-
+	protected void init(VaadinRequest request)  {
 		VerticalLayout layout = new VerticalLayout();
 		HorizontalLayout controlLayout = new HorizontalLayout();
 		sonarLayout = new VerticalLayout();		
@@ -66,7 +64,7 @@ public class SonarWidgetApplication extends Application {
 		selector.addItem("2D Sonar0011.slg");
 		selector.addItem("SideScan R00001.DAT");
 		selector.addItem("DownScan R00001.DAT");
-		selector.addListener(new Property.ValueChangeListener() {
+		selector.addValueChangeListener(new Property.ValueChangeListener() {
 			
 			@Override
 			public void valueChange(ValueChangeEvent event) {				
@@ -76,7 +74,7 @@ public class SonarWidgetApplication extends Application {
 		});
 		
 		overlayCheck.setImmediate(true);
-		overlayCheck.addListener(new Property.ValueChangeListener() {
+		overlayCheck.addValueChangeListener(new Property.ValueChangeListener() {
 			
 			@Override
 			public void valueChange(ValueChangeEvent event) {
@@ -86,7 +84,7 @@ public class SonarWidgetApplication extends Application {
 		});
 		
 		colorsettings.setImmediate(true);
-		colorsettings.addListener(new Property.ValueChangeListener() {
+		colorsettings.addValueChangeListener(new Property.ValueChangeListener() {
 			
 			@Override
 			public void valueChange(ValueChangeEvent event) {
@@ -102,8 +100,7 @@ public class SonarWidgetApplication extends Application {
 		controlLayout.addComponent(colorsettings);
 		layout.addComponent(controlLayout);
 		layout.addComponent(sonarLayout);
-		mainWindow.addComponent(layout);
-		setMainWindow(mainWindow);	
+		setContent(layout);	
 	}
 	
 	private void drawSonarWidget() {

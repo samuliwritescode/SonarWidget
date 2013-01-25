@@ -23,9 +23,9 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.vaadin.terminal.gwt.client.ApplicationConnection;
-import com.vaadin.terminal.gwt.client.Paintable;
-import com.vaadin.terminal.gwt.client.UIDL;
+import com.vaadin.client.ApplicationConnection;
+import com.vaadin.client.Paintable;
+import com.vaadin.client.UIDL;
 
 public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandler  {
 
@@ -120,7 +120,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	 * @param context
 	 */
 	public void drawBitmap(final int offset, final String name, final Context2d context, final Canvas canvas) {
-		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(5));
+		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(6));
 		RootPanel.get().add(image);
 		image.setVisible(false);
 		
