@@ -112,9 +112,11 @@ class WidgetState {
 			} else {
 				this.drawn.add(new Integer(loop).toString());
 			}
-			client.updateVariable(uid, "windowheight", ui.getElement().getClientHeight(), false);
-			client.updateVariable(uid, "windowwidth", tilewidth, false);
-			client.updateVariable(uid, "currentwindow", loop, true);
+//			client.updateVariable(uid, "windowheight", ui.getElement().getClientHeight(), false);
+//			client.updateVariable(uid, "windowwidth", tilewidth, false);
+//			client.updateVariable(uid, "currentwindow", loop, true);	
+			SonarWidgetConnector connector = (SonarWidgetConnector) client.getConnector("7", 0);
+			connector.getData(ui.getElement().getClientHeight(), tilewidth, loop);
 		}
 	}
 

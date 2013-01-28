@@ -23,6 +23,7 @@ import com.vaadin.sonarwidget.data.LowranceStructureScan;
 import com.vaadin.sonarwidget.data.Ping;
 import com.vaadin.sonarwidget.data.Sonar;
 import com.vaadin.sonarwidget.data.Sonar.Type;
+import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetRpc;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.LegacyComponent;
 
@@ -48,26 +49,39 @@ public class SonarWidget extends AbstractComponent implements LegacyComponent {
 		public Integer height;
 	}
 	
-	public SonarWidget(File file, Type preferredChannel) {
-		offsets = new LinkedList<Frame>();
-		try {
-			String filenameExtension = file.getName().substring(file.getName().length()-3);
-			if(filenameExtension.equalsIgnoreCase("sl2")) {
-				sonar = new LowranceStructureScan(file, preferredChannel);
-			} else if(filenameExtension.equalsIgnoreCase("slg")) {
-				sonar = new LowranceSonar(file);
-			} else if(filenameExtension.equalsIgnoreCase("dat")) {
-				sonar = new HumminbirdSSI(file, preferredChannel);
-			}
-		} catch (IOException e) {			
-			throw new RuntimeException(e);
-		}
+	private SonarWidgetRpc rpc = new SonarWidgetRpc() {
 
+            @Override
+            public void fetchSonarData(int height, int width, int index) {
+                Frame frame = new Frame();
+                frame.width = width;
+                frame.height = height;
+                frame.offset = index;
+                SonarWidget.this.offsets.add(frame);
+                requestRepaint();
+            }
+	    
+	};
+	
+	public SonarWidget(File file, Type preferredChannel) {
+	    registerRpc(this.rpc);
+	    offsets = new LinkedList<Frame>();
+	    try {
+	        String filenameExtension = file.getName().substring(file.getName().length()-3);
+		if(filenameExtension.equalsIgnoreCase("sl2")) {
+		    sonar = new LowranceStructureScan(file, preferredChannel);
+		} else if(filenameExtension.equalsIgnoreCase("slg")) {
+		    sonar = new LowranceSonar(file);
+		} else if(filenameExtension.equalsIgnoreCase("dat")) {
+		    sonar = new HumminbirdSSI(file, preferredChannel);
+		}
+	    } catch (IOException e) {			
+	        throw new RuntimeException(e);
+	    }
 	}
 	
 	@Override
 	public void paintContent(PaintTarget target) throws PaintException {
-		
 		target.addAttribute("color", color);
 		target.addAttribute("overlay", overlay);
 		target.addAttribute("sidesonar", sonar.getType() == Type.eSideScan);
@@ -131,19 +145,19 @@ public class SonarWidget extends AbstractComponent implements LegacyComponent {
 
 	@Override
 	public void changeVariables(Object source, Map<String, Object> variables) {
-		Frame frame = new Frame();
-		if(variables.containsKey("windowwidth")) {
-			frame.width = (Integer)variables.get("windowwidth");			
-		}
-		
-		if(variables.containsKey("windowheight")) {
-			frame.height = (Integer)variables.get("windowheight");
-		}
-		
-		if(variables.containsKey("currentwindow")) {
-			frame.offset = (Integer)variables.get("currentwindow");
-		}
-		this.offsets.add(frame);
+//		Frame frame = new Frame();
+//		if(variables.containsKey("windowwidth")) {
+//			frame.width = (Integer)variables.get("windowwidth");			
+//		}
+//		
+//		if(variables.containsKey("windowheight")) {
+//			frame.height = (Integer)variables.get("windowheight");
+//		}
+//		
+//		if(variables.containsKey("currentwindow")) {
+//			frame.offset = (Integer)variables.get("currentwindow");
+//		}
+//		this.offsets.add(frame);
 		
 		requestRepaint();
 	}
