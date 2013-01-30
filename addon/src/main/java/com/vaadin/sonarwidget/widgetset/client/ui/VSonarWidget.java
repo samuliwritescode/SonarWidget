@@ -4,7 +4,6 @@ import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Position;
@@ -100,6 +99,10 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 		context.clearRect(0, 0, canvas.getCoordinateSpaceWidth(), canvas.getCoordinateSpaceHeight());
 	}
 	
+	public WidgetState getState() {
+	    return state;
+	}
+	
 	@Override
 	public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
 		if (client.updateComponent(this, uidl, true)) {
@@ -120,7 +123,7 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	 * @param context
 	 */
 	public void drawBitmap(final int offset, final String name, final Context2d context, final Canvas canvas) {
-		final Image image = new Image(GWT.getHostPageBaseURL()+name.substring(6));
+		final Image image = new Image(name);
 		RootPanel.get().add(image);
 		image.setVisible(false);
 		

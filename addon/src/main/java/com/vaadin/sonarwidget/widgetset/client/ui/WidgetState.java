@@ -11,8 +11,7 @@ import com.vaadin.client.UIDL;
 class WidgetState {
 	private VSonarWidget ui;
 	private DepthData model;
-	private ApplicationConnection client;
-	private String uid;
+	private SonarWidgetConnector connector;
 	private List<String> drawn;
 	private boolean overlay;
 	private boolean sidescan;
@@ -22,8 +21,7 @@ class WidgetState {
 	
 	public WidgetState(VSonarWidget ui) {
 		this.drawn = new ArrayList<String>();
-		this.ui = ui;
-		
+		this.ui = ui;		
 		this.canvases = new ArrayList<Canvas>();
 	}
 	
@@ -39,19 +37,16 @@ class WidgetState {
 		return this.overlay;
 	}
 	
+	public void setConnector(SonarWidgetConnector connector) {
+	    this.connector = connector;
+	}
+	
 	public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
-		this.client = client;
-		this.uid = uidl.getId();
-		
 		if(this.drawn.isEmpty()) {
 			fetchSonarData(0);
 			return;
 		}		
 
-		if(this.canvases.isEmpty() && uidl.hasAttribute("pingcount")) {
-			initialize(uidl.getIntAttribute("pingcount"));
-		}
-		
 		if(uidl.hasAttribute("overlay")) {
 			this.overlay = uidl.getBooleanAttribute("overlay");
 		}
@@ -64,31 +59,24 @@ class WidgetState {
 			this.sidescan = uidl.getBooleanAttribute("sidesonar");
 		}
 
-		if(uidl.hasAttribute("offset")) {
-			int offset = uidl.getIntAttribute("offset");
+	}
+	
+	public void setPingCount(long pingcount) {
+	    if(this.canvases.isEmpty()) {
+                initialize((int)pingcount);
+            }
+	}
+	
+	public void setOffset(int offset, String pic, String[] lowlimits, String[] depths, String[] temps) {
+            Canvas canvas = this.canvases.get((int)(offset/tilewidth));
+            ui.clearCanvas(canvas);
+            final Context2d context = canvas.getContext2d();
 
-			Canvas canvas = this.canvases.get((int)(offset/tilewidth));
-			ui.clearCanvas(canvas);
-			final Context2d context = canvas.getContext2d();
-			
-			if(uidl.hasAttribute("lowlimits")) {
-				model.appendLowlimit(uidl.getStringArrayAttribute("lowlimits"), offset);			
-			}
-			
-			if(uidl.hasAttribute("depths")) {
-				model.appendDepth(uidl.getStringArrayAttribute("depths"), offset);			
-			}
-			
-			if(uidl.hasAttribute("temps")) {
-				model.appendTemp(uidl.getStringArrayAttribute("temps"), offset);				
-			}
-			
-			if(uidl.hasAttribute("pic")) {
-				ui.drawBitmap(offset, uidl.getStringAttribute("pic"), context, canvas);	
-			}	
-			
-			ui.drawOverlay(offset, context);
-		}
+            model.appendLowlimit(lowlimits, offset);                        
+            model.appendDepth(depths, offset);                      
+            model.appendTemp(temps, offset);                                
+            ui.drawBitmap(offset, pic, context, canvas); 
+            ui.drawOverlay(offset, context);
 	}
 	
 	private void initialize(int pingcount) {
@@ -112,10 +100,6 @@ class WidgetState {
 			} else {
 				this.drawn.add(new Integer(loop).toString());
 			}
-//			client.updateVariable(uid, "windowheight", ui.getElement().getClientHeight(), false);
-//			client.updateVariable(uid, "windowwidth", tilewidth, false);
-//			client.updateVariable(uid, "currentwindow", loop, true);	
-			SonarWidgetConnector connector = (SonarWidgetConnector) client.getConnector("7", 0);
 			connector.getData(ui.getElement().getClientHeight(), tilewidth, loop);
 		}
 	}

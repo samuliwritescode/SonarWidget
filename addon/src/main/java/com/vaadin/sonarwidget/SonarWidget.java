@@ -7,9 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 
 import javax.imageio.ImageIO;
 
@@ -23,14 +21,14 @@ import com.vaadin.sonarwidget.data.LowranceStructureScan;
 import com.vaadin.sonarwidget.data.Ping;
 import com.vaadin.sonarwidget.data.Sonar;
 import com.vaadin.sonarwidget.data.Sonar.Type;
-import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetRpc;
+import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetClientRpc;
+import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetServerRpc;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.LegacyComponent;
 
 public class SonarWidget extends AbstractComponent implements LegacyComponent {
 
 	private Sonar sonar;
-	private Queue<Frame> offsets;
 	private boolean overlay = true;
 	private int color = 0;
 	
@@ -49,23 +47,66 @@ public class SonarWidget extends AbstractComponent implements LegacyComponent {
 		public Integer height;
 	}
 	
-	private SonarWidgetRpc rpc = new SonarWidgetRpc() {
+	private SonarWidgetServerRpc rpc = new SonarWidgetServerRpc() {
 
             @Override
             public void fetchSonarData(int height, int width, int index) {
-                Frame frame = new Frame();
+                final Frame frame = new Frame();
                 frame.width = width;
                 frame.height = height;
                 frame.offset = index;
-                SonarWidget.this.offsets.add(frame);
-                requestRepaint();
+                if(sonar.getLength() < frame.offset) {
+                    return;
+                }
+                
+                if(sonar.getLength() < (frame.offset+frame.width)) {
+                        frame.width = (int) (sonar.getLength() - frame.offset);
+                }
+                
+                Ping[] pingRange = null;
+                try {
+                        pingRange = sonar.getPingRange(frame.offset, frame.width);
+                } catch (IOException e) {               
+                        e.printStackTrace();
+                }
+                
+                String filename = String.format("frame%d-%d.jpg", frame.offset, new Date().getTime());
+                StreamResource streamResource = new StreamResource(new StreamSource() {
+                    @Override
+                    public InputStream getStream() {
+                        try {
+                            ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
+                            ImageIO.write(createImage(sonar, frame.offset, frame.width, frame.height), "jpg", imagebuffer);                
+                            return new ByteArrayInputStream(imagebuffer.toByteArray());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }
+                }, 
+                filename
+                );
+                
+                setResource(filename, streamResource);
+                
+                String[] lowlimits = new String[pingRange.length];
+                String[] depths = new String[pingRange.length];
+                String[] temps = new String[pingRange.length];
+                
+                for(int loop=0; loop < pingRange.length; loop++) {
+                        lowlimits[loop] = String.format("%.1f", pingRange[loop].getLowLimit()); 
+                        depths[loop] = String.format("%.1f", pingRange[loop].getDepth());
+                        temps[loop] = String.format("%.1f", pingRange[loop].getTemp());
+                }
+                
+                
+                getRpcProxy(SonarWidgetClientRpc.class).frameData(index, sonar.getLength(), filename, lowlimits, depths, temps);
             }
 	    
 	};
 	
 	public SonarWidget(File file, Type preferredChannel) {
 	    registerRpc(this.rpc);
-	    offsets = new LinkedList<Frame>();
 	    try {
 	        String filenameExtension = file.getName().substring(file.getName().length()-3);
 		if(filenameExtension.equalsIgnoreCase("sl2")) {
@@ -85,80 +126,10 @@ public class SonarWidget extends AbstractComponent implements LegacyComponent {
 		target.addAttribute("color", color);
 		target.addAttribute("overlay", overlay);
 		target.addAttribute("sidesonar", sonar.getType() == Type.eSideScan);
-
-		final Frame frame = this.offsets.poll();			
-
-		if(frame != null && 
-			frame.width != null && 
-			frame.height != null && 
-			frame.offset != null) {
-			if(sonar.getLength() < frame.offset) {
-				return;
-			}
-			
-			if(sonar.getLength() < (frame.offset+frame.width)) {
-				frame.width = (int) (sonar.getLength() - frame.offset);
-			}
-			
-			Ping[] pingRange = null;
-			try {
-				pingRange = sonar.getPingRange(frame.offset, frame.width);
-			} catch (IOException e) {		
-				e.printStackTrace();
-			}
-			
-			String[] lowlimits = new String[pingRange.length];
-			String[] depths = new String[pingRange.length];
-			String[] temps = new String[pingRange.length];
-			
-			for(int loop=0; loop < pingRange.length; loop++) {
-				lowlimits[loop] = String.format("%.1f", pingRange[loop].getLowLimit());	
-				depths[loop] = String.format("%.1f", pingRange[loop].getDepth());
-				temps[loop] = String.format("%.1f", pingRange[loop].getTemp());
-			}
-
-			target.addAttribute("pingcount", sonar.getLength());
-			target.addAttribute("lowlimits", lowlimits);
-			target.addAttribute("depths", depths);
-			target.addAttribute("temps", temps);
-			target.addAttribute("offset", frame.offset);
-						
-			StreamResource streamResource = new StreamResource(new StreamSource() {
-				@Override
-				public InputStream getStream() {
-			        try {
-			        	ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-			            ImageIO.write(createImage(sonar, frame.offset, frame.width, frame.height), "jpg", imagebuffer);	           
-			            return new ByteArrayInputStream(imagebuffer.toByteArray());
-			        } catch (IOException e) {
-			        	e.printStackTrace();
-			        	return null;
-			        }
-				}
-			}, 
-			String.format("frame%d-%d.jpg", frame.offset, new Date().getTime())
-			);
-			
-			target.addAttribute("pic", streamResource);
-		}
 	}
 
 	@Override
-	public void changeVariables(Object source, Map<String, Object> variables) {
-//		Frame frame = new Frame();
-//		if(variables.containsKey("windowwidth")) {
-//			frame.width = (Integer)variables.get("windowwidth");			
-//		}
-//		
-//		if(variables.containsKey("windowheight")) {
-//			frame.height = (Integer)variables.get("windowheight");
-//		}
-//		
-//		if(variables.containsKey("currentwindow")) {
-//			frame.offset = (Integer)variables.get("currentwindow");
-//		}
-//		this.offsets.add(frame);
-		
+	public void changeVariables(Object source, Map<String, Object> variables) {	
 		requestRepaint();
 	}
 

@@ -1,0 +1,7 @@
+package com.vaadin.sonarwidget.widgetset.client.ui;
+
+import com.vaadin.shared.communication.ClientRpc;
+
+public interface SonarWidgetClientRpc extends ClientRpc {
+    public void frameData(int offset, long pingcount, String pic, String[] lowlimits, String[] depths, String[] temps);
+}
