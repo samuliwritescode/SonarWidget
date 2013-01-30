@@ -22,11 +22,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.vaadin.client.ApplicationConnection;
-import com.vaadin.client.Paintable;
-import com.vaadin.client.UIDL;
 
-public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandler  {
+public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 
 	private WidgetState state;
 	private DepthData model;
@@ -101,17 +98,6 @@ public class VSonarWidget extends ScrollPanel implements Paintable, ScrollHandle
 	
 	public WidgetState getState() {
 	    return state;
-	}
-	
-	@Override
-	public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
-		if (client.updateComponent(this, uidl, true)) {
-		    // If client.updateComponent returns true there has been no changes and we
-		    // do not need to update anything.
-			return;
-		}
-		
-		state.updateFromUIDL(uidl, client);
 	}
 
 	/**

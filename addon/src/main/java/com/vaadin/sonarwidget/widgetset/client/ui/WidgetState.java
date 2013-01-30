@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
-import com.vaadin.client.ApplicationConnection;
-import com.vaadin.client.UIDL;
 
 class WidgetState {
 	private VSonarWidget ui;
@@ -41,24 +39,22 @@ class WidgetState {
 	    this.connector = connector;
 	}
 	
-	public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
-		if(this.drawn.isEmpty()) {
-			fetchSonarData(0);
-			return;
-		}		
-
-		if(uidl.hasAttribute("overlay")) {
-			this.overlay = uidl.getBooleanAttribute("overlay");
-		}
-		
-		if(uidl.hasAttribute("color")) {
-			this.colormask = uidl.getIntAttribute("color");
-		}
-		
-		if(uidl.hasAttribute("sidesonar")) {
-			this.sidescan = uidl.getBooleanAttribute("sidesonar");
-		}
-
+	public void fetchInitialData() {
+	    if(this.drawn.isEmpty()) {
+                fetchSonarData(0);                
+            }       
+	}
+	
+	public void setOverlay(boolean isOverlay) {
+	    this.overlay = isOverlay;
+	}
+	
+	public void setColor(int color) {
+	    this.colormask = color;
+	}
+	
+	public void setSideScan(boolean isSideScan) {
+	    this.sidescan = isSideScan;
 	}
 	
 	public void setPingCount(long pingcount) {

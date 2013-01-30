@@ -7,12 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import com.vaadin.server.PaintException;
-import com.vaadin.server.PaintTarget;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.sonarwidget.data.HumminbirdSSI;
@@ -23,14 +20,14 @@ import com.vaadin.sonarwidget.data.Sonar;
 import com.vaadin.sonarwidget.data.Sonar.Type;
 import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetClientRpc;
 import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetServerRpc;
+import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetState;
 import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.LegacyComponent;
 
-public class SonarWidget extends AbstractComponent implements LegacyComponent {
+public class SonarWidget extends AbstractComponent {
 
-	private Sonar sonar;
-	private boolean overlay = true;
-	private int color = 0;
+    private static final long serialVersionUID = 1L;
+
+    private Sonar sonar;
 	
 	public static int COLOR_RED = 1;
 	public static int COLOR_GREEN = 2;
@@ -47,7 +44,14 @@ public class SonarWidget extends AbstractComponent implements LegacyComponent {
 		public Integer height;
 	}
 	
+	@Override
+	public SonarWidgetState getState() {
+	    return (SonarWidgetState) super.getState();
+	}
+	
 	private SonarWidgetServerRpc rpc = new SonarWidgetServerRpc() {
+
+	    private static final long serialVersionUID = 1L;
 
             @Override
             public void fetchSonarData(int height, int width, int index) {
@@ -119,28 +123,19 @@ public class SonarWidget extends AbstractComponent implements LegacyComponent {
 	    } catch (IOException e) {			
 	        throw new RuntimeException(e);
 	    }
+	    
+	    getState().sidescan = sonar.getType() == Type.eSideScan;
+	    getState().color = 0;
+	    getState().overlay = false;
 	}
 	
-	@Override
-	public void paintContent(PaintTarget target) throws PaintException {
-		target.addAttribute("color", color);
-		target.addAttribute("overlay", overlay);
-		target.addAttribute("sidesonar", sonar.getType() == Type.eSideScan);
-	}
-
-	@Override
-	public void changeVariables(Object source, Map<String, Object> variables) {	
-		requestRepaint();
-	}
 
 	public void setOverlay(boolean booleanValue) {
-		this.overlay = booleanValue;
-		requestRepaint();
+	        getState().overlay = booleanValue;
 	}
 	
 	public void setColor(int color) {
-		this.color = color;
-		requestRepaint();
+	    getState().color = color;
 	}
 	
 	private BufferedImage createImage(Sonar sonar, int offset, int width, int height) {
