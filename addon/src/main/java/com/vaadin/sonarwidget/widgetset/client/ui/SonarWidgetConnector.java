@@ -19,11 +19,12 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
             @Override
             public void frameData(int offset, String pic, String[] lowlimits, String[] depths, String[] temps) {
                 String resourceUrl = getResourceUrl(pic);
-                getWidget().getState().setOffset(offset, resourceUrl, lowlimits, depths, temps);
+                getWidget().setOffset(offset, resourceUrl, lowlimits, depths, temps);
             }
         });
         
-        getWidget().getState().setConnector(this);
+        getWidget().setConnector(this);
+        getWidget().setState(getState());
     }
 
     @Override
@@ -39,10 +40,8 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
     @Override
     public void onStateChanged(StateChangeEvent event) {
         super.onStateChanged(event);
-        getWidget().getState().setPingCount(getState().pingCount);
-        getWidget().getState().setColor(getState().color);
-        getWidget().getState().setSideScan(getState().sidescan);
-        getWidget().getState().setOverlay(getState().overlay);
+        getWidget().setState(getState());
+        getWidget().setPingCount(getState().pingCount);
     }
     
     public void getData(int height, int width, int index) {

@@ -1,5 +1,8 @@
 package com.vaadin.sonarwidget.widgetset.client.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -27,7 +30,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 
-	private WidgetState state;
 	private DepthData model;
 	private HorizontalPanel vert;
 	private Label depthlabel;
@@ -35,6 +37,11 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 	private Label cursorlabel;
 	private Canvas ruler;
 	private VerticalPanel labels;
+	
+	private List<String> drawn;
+	private List<Canvas> canvases;
+	private SonarWidgetState state;
+	private SonarWidgetConnector connector;
 	
 	public static int COLOR_RED = 1;
 	public static int COLOR_GREEN = 2;
@@ -44,11 +51,14 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 	public static int COLOR_MORECONTRAST = 32;
 	public static int COLOR_LESSCONTRAST = 64;
 	public static int COLOR_CONTRASTBOOST = 128;
+	
+	public static final int tilewidth = 400;
 
 	public VSonarWidget() {
 		super();
 		
-		this.state = new WidgetState(this);
+		this.drawn = new ArrayList<String>();
+		this.canvases = new ArrayList<Canvas>();
 		this.depthlabel = new Label();
 		this.templabel = new Label();
 		this.cursorlabel = new Label();
@@ -79,12 +89,69 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
                             return true;
                         }
                         
-                        getState().fetchInitialData();
+                        fetchInitialData();
                         return false;
                     }
                 });
 	}
 	
+	public void setState(SonarWidgetState state) {
+	    this.state = state;
+	}
+	
+	public void setConnector(SonarWidgetConnector connector) {
+	    this.connector = connector;
+	}
+	
+	public void fetchInitialData() {
+	    if(this.drawn.isEmpty()) {
+	        fetchSonarData(0);                
+	    }       
+	}
+	
+	public void setPingCount(long pingcount) {
+	    if(this.canvases.isEmpty()) {
+	        initialize((int)pingcount);
+	    }
+	}
+	
+	public void setOffset(int offset, String pic, String[] lowlimits, String[] depths, String[] temps) {
+            Canvas canvas = this.canvases.get((int)(offset/tilewidth));
+            clearCanvas(canvas);
+            final Context2d context = canvas.getContext2d();
+
+            model.appendLowlimit(lowlimits, offset);                        
+            model.appendDepth(depths, offset);                      
+            model.appendTemp(temps, offset);                                
+            drawBitmap(offset, pic, context, canvas); 
+            drawOverlay(offset, context);
+        }
+        
+        private void initialize(int pingcount) {
+                model = new DepthData(pingcount);
+                clearWidget(pingcount);
+                setModel(model);
+                
+                for(int loop=0; loop < pingcount; loop+=tilewidth) {
+                        int width = Math.min(tilewidth, pingcount-loop);
+                        Canvas canvas = addCanvas(width);
+                        this.canvases.add(canvas);
+                }
+        }
+
+        private void fetchSonarData(int offset) {
+                int normalizedoffset = offset-offset%tilewidth;
+                
+                for(int loop = normalizedoffset; loop < normalizedoffset+getOffsetWidth()+tilewidth; loop+= tilewidth) {
+                        if(this.drawn.contains(new Integer(loop).toString())) {
+                                continue;
+                        } else {
+                                this.drawn.add(new Integer(loop).toString());
+                        }
+                        connector.getData(getElement().getClientHeight(), tilewidth, loop);
+                }
+        }
+        
 	public void clearWidget(int totalwidth) {		
 		vert.clear();
 		vert.setWidth(totalwidth+"px");
@@ -109,10 +176,6 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 	public void clearCanvas(Canvas canvas) {
 		final Context2d context = canvas.getContext2d();
 		context.clearRect(0, 0, canvas.getCoordinateSpaceWidth(), canvas.getCoordinateSpaceHeight());
-	}
-	
-	public WidgetState getState() {
-	    return state;
 	}
 
 	/**
@@ -168,7 +231,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 	}
 	
 	private void colorizeImage(Context2d context) {
-		int colormask = state.getColorMask();
+		int colormask = state.color;
 		if(colormask == 0) {
 			return;
 		}
@@ -234,7 +297,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 	 * @param context draw context
 	 */
 	public void drawOverlay(int offset, final Context2d context) {
-		if(!state.isOverlay()) {
+		if(!state.overlay) {
 			return;
 		}
 
@@ -242,7 +305,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 		double[] points = new double[width];
 		double[] mirrorpoints = null;
 		
-		if(state.isSideScan()) {
+		if(state.sidescan) {
 			mirrorpoints = new double[width];
 		}
 		
@@ -252,7 +315,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 			
 			double yPos = getElement().getClientHeight()*depth/lowlimit;
 						
-			if(state.isSideScan()) {
+			if(state.sidescan) {
 				yPos = (getElement().getClientHeight()/2)*depth/lowlimit + getElement().getClientHeight()/2;
 				mirrorpoints[loop] = getElement().getClientHeight()/2 - (yPos-getElement().getClientHeight()/2);
 			}
@@ -297,7 +360,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 		context2d.fillRect(0, 0, 1, height);
 		
 		//Skip depth arrow in side scan mode
-		if(!state.isSideScan()) {
+		if(!state.sidescan) {
 			float depth = model.getDepth(coordinate);
 			float lowlimit = model.getLowlimit(coordinate);
 			int drawdepth = (int) (height*depth/lowlimit);
@@ -313,8 +376,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 	
 	@Override
 	public void onScroll(ScrollEvent event) {
-		state.scrollEvent(getHorizontalScrollPosition());
-				
+		fetchSonarData(getHorizontalScrollPosition());		
 	}
 	
 	private void onMouseHover(Point coordinate) {
@@ -330,7 +392,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 		float lowlimit = model.getLowlimit(coordinate.getX());
 		float cursor = lowlimit*(coordinate.getY()/(float)getElement().getClientHeight());
 		
-		if(state.isSideScan()) {
+		if(state.sidescan) {
 			float surfacepx = (float)getElement().getClientHeight()/2;
 			float distancepx = Math.abs(surfacepx - coordinate.getY());
 			cursor = distancepx * lowlimit/surfacepx;
