@@ -1,4 +1,4 @@
-package com.vaadin.sonarwidget;
+package org.vaadin.sonarwidget;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -10,17 +10,18 @@ import java.util.Date;
 
 import javax.imageio.ImageIO;
 
+import org.vaadin.sonarwidget.data.HumminbirdSSI;
+import org.vaadin.sonarwidget.data.LowranceSonar;
+import org.vaadin.sonarwidget.data.LowranceStructureScan;
+import org.vaadin.sonarwidget.data.Ping;
+import org.vaadin.sonarwidget.data.Sonar;
+import org.vaadin.sonarwidget.data.Sonar.Type;
+import org.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetClientRpc;
+import org.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetServerRpc;
+import org.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetState;
+
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.sonarwidget.data.HumminbirdSSI;
-import com.vaadin.sonarwidget.data.LowranceSonar;
-import com.vaadin.sonarwidget.data.LowranceStructureScan;
-import com.vaadin.sonarwidget.data.Ping;
-import com.vaadin.sonarwidget.data.Sonar;
-import com.vaadin.sonarwidget.data.Sonar.Type;
-import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetClientRpc;
-import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetServerRpc;
-import com.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetState;
 import com.vaadin.ui.AbstractComponent;
 
 public class SonarWidget extends AbstractComponent {

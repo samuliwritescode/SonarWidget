@@ -9,5 +9,5 @@
     <set-property name="user.agent" value="safari" />
     -->
 
-    <inherits name="com.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset" />
+    <inherits name="org.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset" />
 </module>

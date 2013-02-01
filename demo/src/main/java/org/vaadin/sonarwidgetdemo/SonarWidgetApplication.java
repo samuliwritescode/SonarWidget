@@ -1,13 +1,14 @@
-package com.vaadin.sonarwidgetdemo;
+package org.vaadin.sonarwidgetdemo;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.vaadin.sonarwidget.SonarWidget;
+import org.vaadin.sonarwidget.data.Sonar.Type;
+
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.sonarwidget.SonarWidget;
-import com.vaadin.sonarwidget.data.Sonar.Type;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;

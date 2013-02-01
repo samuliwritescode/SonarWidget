@@ -1,10 +1,11 @@
-package com.vaadin.sonarwidget.widgetset.client.ui;
+package org.vaadin.sonarwidget.widgetset.client.ui;
+
+import org.vaadin.sonarwidget.SonarWidget;
 
 import com.vaadin.client.communication.RpcProxy;
 import com.vaadin.client.communication.StateChangeEvent;
 import com.vaadin.client.ui.AbstractComponentConnector;
 import com.vaadin.shared.ui.Connect;
-import com.vaadin.sonarwidget.SonarWidget;
 
 @Connect(SonarWidget.class)
 public class SonarWidgetConnector extends AbstractComponentConnector {

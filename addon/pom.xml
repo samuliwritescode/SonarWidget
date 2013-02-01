@@ -55,7 +55,7 @@
 						</manifest>
 						<manifestEntries>
 							<Vaadin-Package-Version>1</Vaadin-Package-Version>
-							<Vaadin-Widgetsets>com.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset</Vaadin-Widgetsets>
+							<Vaadin-Widgetsets>org.vaadin.sonarwidget.widgetset.SonarwidgetWidgetset</Vaadin-Widgetsets>
 						</manifestEntries>
 					</archive>
 				</configuration>

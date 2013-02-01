@@ -14,13 +14,13 @@
 			<description>
 			Vaadin application class to start</description>
 			<param-name>UI</param-name>
-			<param-value>com.vaadin.sonarwidgetdemo.SonarWidgetApplication</param-value>
+			<param-value>org.vaadin.sonarwidgetdemo.SonarWidgetApplication</param-value>
 		</init-param>
 		<init-param>
 			<description>
 			Application widgetset</description>
 			<param-name>widgetset</param-name>
-			<param-value>com.vaadin.sonarwidgetdemo.widgetset.SonarwidgetDemoWidgetset</param-value>
+			<param-value>org.vaadin.sonarwidgetdemo.widgetset.SonarwidgetDemoWidgetset</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>

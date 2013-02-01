@@ -1,4 +1,4 @@
-package com.vaadin.sonarwidget.widgetset.client.ui;
+package org.vaadin.sonarwidget.widgetset.client.ui;
 
 public class DepthData {
 	private String[] depths;

@@ -1,4 +1,4 @@
-package com.vaadin.sonarwidget.widgetset.client.ui;
+package org.vaadin.sonarwidget.widgetset.client.ui;
 
 import java.util.ArrayList;
 import java.util.List;
