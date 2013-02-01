@@ -1,6 +1,5 @@
 package com.vaadin.sonarwidget.widgetset.client.ui;
 
-import com.google.gwt.user.client.Timer;
 import com.vaadin.client.communication.RpcProxy;
 import com.vaadin.client.communication.StateChangeEvent;
 import com.vaadin.client.ui.AbstractComponentConnector;
@@ -25,13 +24,6 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
         });
         
         getWidget().getState().setConnector(this);
-        
-        new Timer() {
-
-            @Override
-            public void run() {
-                getWidget().getState().fetchInitialData();                
-            }}.schedule(1000);
     }
 
     @Override

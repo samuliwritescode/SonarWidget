@@ -4,6 +4,8 @@ import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.RepeatingCommand;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Position;
@@ -68,6 +70,19 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler  {
 
 		sinkEvents(Event.ONMOUSEMOVE);
 		addScrollHandler(this);
+		
+		Scheduler.get().scheduleEntry(new RepeatingCommand() {
+                    
+                    @Override
+                    public boolean execute() {
+                        if (getElement().getClientWidth() <= 0) {
+                            return true;
+                        }
+                        
+                        getState().fetchInitialData();
+                        return false;
+                    }
+                });
 	}
 	
 	public void clearWidget(int totalwidth) {		
