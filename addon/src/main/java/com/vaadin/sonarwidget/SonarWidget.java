@@ -98,7 +98,7 @@ public class SonarWidget extends AbstractComponent {
                 }
                 
                 
-                getRpcProxy(SonarWidgetClientRpc.class).frameData(index, sonar.getLength(), filename, lowlimits, depths, temps);
+                getRpcProxy(SonarWidgetClientRpc.class).frameData(index, filename, lowlimits, depths, temps);
             }
 	    
 	};
@@ -118,14 +118,14 @@ public class SonarWidget extends AbstractComponent {
 	        throw new RuntimeException(e);
 	    }
 	    
+	    getState().pingCount = sonar.getLength();
 	    getState().sidescan = sonar.getType() == Type.eSideScan;
-	    getState().color = 0;
-	    getState().overlay = false;
+	    setColor(0);
+	    setOverlay(false);
 	}
 	
-
 	public void setOverlay(boolean booleanValue) {
-	        getState().overlay = booleanValue;
+	    getState().overlay = booleanValue;
 	}
 	
 	public void setColor(int color) {

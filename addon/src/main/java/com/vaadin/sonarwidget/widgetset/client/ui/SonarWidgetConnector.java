@@ -18,9 +18,8 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void frameData(int offset, long pingcount, String pic, String[] lowlimits, String[] depths, String[] temps) {
+            public void frameData(int offset, String pic, String[] lowlimits, String[] depths, String[] temps) {
                 String resourceUrl = getResourceUrl(pic);
-                getWidget().getState().setPingCount(pingcount);
                 getWidget().getState().setOffset(offset, resourceUrl, lowlimits, depths, temps);
             }
         });
@@ -48,6 +47,7 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
     @Override
     public void onStateChanged(StateChangeEvent event) {
         super.onStateChanged(event);
+        getWidget().getState().setPingCount(getState().pingCount);
         getWidget().getState().setColor(getState().color);
         getWidget().getState().setSideScan(getState().sidescan);
         getWidget().getState().setOverlay(getState().overlay);
