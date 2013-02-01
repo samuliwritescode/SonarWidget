@@ -4,10 +4,10 @@
 
 	<groupId>org.vaadin.addons</groupId>
 	<artifactId>sonarwidget</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3</version>
 	<packaging>jar</packaging>
 
-	<name>SonarWidget add-on for Vaadin</name>
+	<name>SonarWidget</name>
 	<url>http://vaadin.com/addon/sonarwidget</url>
 	<scm>
 		<connection>scm:git:git://github.com/capeisti/SonarWidget.git</connection>
