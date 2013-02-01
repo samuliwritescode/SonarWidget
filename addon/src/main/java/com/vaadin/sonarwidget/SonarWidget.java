@@ -26,61 +26,55 @@ import com.vaadin.ui.AbstractComponent;
 public class SonarWidget extends AbstractComponent {
 
     private static final long serialVersionUID = 1L;
-
     private Sonar sonar;
+    public static int COLOR_RED = 1;
+    public static int COLOR_GREEN = 2;
+    public static int COLOR_BLUE = 4;
+    public static int COLOR_INVERSE = 8;
+    public static int COLOR_MAPCOLORS = 16;
+    public static int COLOR_MORECONTRAST = 32;
+    public static int COLOR_LESSCONTRAST = 64;
+    public static int COLOR_CONTRASTBOOST = 128;
 	
-	public static int COLOR_RED = 1;
-	public static int COLOR_GREEN = 2;
-	public static int COLOR_BLUE = 4;
-	public static int COLOR_INVERSE = 8;
-	public static int COLOR_MAPCOLORS = 16;
-	public static int COLOR_MORECONTRAST = 32;
-	public static int COLOR_LESSCONTRAST = 64;
-	public static int COLOR_CONTRASTBOOST = 128;
+    @Override
+    public SonarWidgetState getState() {
+        return (SonarWidgetState) super.getState();
+    }
 	
-	private static class Frame {
-		public Integer offset;
-		public Integer width;
-		public Integer height;
-	}
-	
-	@Override
-	public SonarWidgetState getState() {
-	    return (SonarWidgetState) super.getState();
-	}
-	
-	private SonarWidgetServerRpc rpc = new SonarWidgetServerRpc() {
-
-	    private static final long serialVersionUID = 1L;
+    private SonarWidgetServerRpc rpc = new SonarWidgetServerRpc() {
+        private static final long serialVersionUID = 1L;
+	    
+        private int resolveWidth(int index, int width) {
+            if(sonar.getLength() < (index+width)) {
+                width = (int) (sonar.getLength() - index);
+            }
+                
+            return width;
+        }
 
             @Override
-            public void fetchSonarData(int height, int width, int index) {
-                final Frame frame = new Frame();
-                frame.width = width;
-                frame.height = height;
-                frame.offset = index;
-                if(sonar.getLength() < frame.offset) {
+            public void fetchSonarData(final int height, final int width, final int index) {
+
+                if(sonar.getLength() < index) {
                     return;
                 }
                 
-                if(sonar.getLength() < (frame.offset+frame.width)) {
-                        frame.width = (int) (sonar.getLength() - frame.offset);
-                }
+                final int resolvedWidth = resolveWidth(index, width);
                 
                 Ping[] pingRange = null;
                 try {
-                        pingRange = sonar.getPingRange(frame.offset, frame.width);
+                        pingRange = sonar.getPingRange(index, resolvedWidth);
                 } catch (IOException e) {               
                         e.printStackTrace();
                 }
                 
-                String filename = String.format("frame%d-%d.jpg", frame.offset, new Date().getTime());
+                String filename = String.format("frame%d-%d.jpg", index, new Date().getTime());
                 StreamResource streamResource = new StreamResource(new StreamSource() {
                     @Override
                     public InputStream getStream() {
                         try {
                             ByteArrayOutputStream imagebuffer = new ByteArrayOutputStream();
-                            ImageIO.write(createImage(sonar, frame.offset, frame.width, frame.height), "jpg", imagebuffer);                
+                            ImageIO.write(createImage(sonar, index, resolvedWidth, height), "jpg", imagebuffer);                
                             return new ByteArrayInputStream(imagebuffer.toByteArray());
                         } catch (IOException e) {
                             e.printStackTrace();
