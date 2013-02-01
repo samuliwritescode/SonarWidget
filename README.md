@@ -18,13 +18,13 @@ API documentation
 
 ## Basic usage
 	@Override
-	public void init() {
-		Window mainWindow = new Window("My Application");
+	public void init(VaadinRequest request) {
+		VerticalLayout layout = new VerticalLayout();
 		SonarWidget sonar = new SonarWidget(new File("/path/to/sonar/file.slg"), Type.eTraditional);
 		sonar.setWidth("100%");
 		sonar.setHeight("400px");
-		mainWindow.addComponent(sonar);
-		setMainWindow(mainWindow);
+		layout.addComponent(sonar);
+		setContent(layout);
 	}
 	
 
@@ -39,7 +39,7 @@ Known issues
 
 Version history
 ---------------
-## 0.0.3 (TBD)
+## 0.0.3 (2013-02-01)
 * Support for Humminbird DAT/SON format
 * Colors
 * Vaadin 7
