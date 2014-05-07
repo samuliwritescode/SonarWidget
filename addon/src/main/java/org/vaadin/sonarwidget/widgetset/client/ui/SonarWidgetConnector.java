@@ -11,7 +11,7 @@ import com.vaadin.shared.ui.Connect;
 public class SonarWidgetConnector extends AbstractComponentConnector {
 
     private static final long serialVersionUID = 1L;
-    SonarWidgetServerRpc rpc = RpcProxy
+    SonarWidgetServerRpc serverRpc = RpcProxy
             .create(SonarWidgetServerRpc.class, this);
 
     public SonarWidgetConnector() {
@@ -45,10 +45,10 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
     public void onStateChanged(StateChangeEvent event) {
         super.onStateChanged(event);
         getWidget().setState(getState());
-        getWidget().setPingCount(getState().pingCount);
+        getWidget().initializeCanvases((int) getState().pingCount);
     }
 
     public void getData(int height, int width, int index) {
-        rpc.fetchSonarData(height, width, index);
+        serverRpc.fetchSonarData(height, width, index);
     }
 }

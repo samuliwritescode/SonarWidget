@@ -89,7 +89,9 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
                     return true;
                 }
 
-                fetchInitialData();
+                if (drawn.isEmpty()) {
+                    fetchSonarData(0);
+                }
                 return false;
             }
         });
@@ -103,15 +105,16 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         this.connector = connector;
     }
 
-    public void fetchInitialData() {
-        if (this.drawn.isEmpty()) {
-            fetchSonarData(0);
-        }
-    }
-
-    public void setPingCount(long pingcount) {
+    public void initializeCanvases(int pingcount) {
         if (this.canvases.isEmpty()) {
-            initialize((int) pingcount);
+            model = new DepthData(pingcount);
+            clearWidget(pingcount);
+
+            for (int loop = 0; loop < pingcount; loop += tilewidth) {
+                int width = Math.min(tilewidth, pingcount - loop);
+                Canvas canvas = addCanvas(width);
+                this.canvases.add(canvas);
+            }
         }
     }
 
@@ -119,25 +122,13 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
             String[] depths, String[] temps) {
         Canvas canvas = this.canvases.get((int) (offset / tilewidth));
         clearCanvas(canvas);
-        final Context2d context = canvas.getContext2d();
+        Context2d context = canvas.getContext2d();
 
         model.appendLowlimit(lowlimits, offset);
         model.appendDepth(depths, offset);
         model.appendTemp(temps, offset);
         drawBitmap(offset, pic, context, canvas);
         drawOverlay(offset, context);
-    }
-
-    private void initialize(int pingcount) {
-        model = new DepthData(pingcount);
-        clearWidget(pingcount);
-        setModel(model);
-
-        for (int loop = 0; loop < pingcount; loop += tilewidth) {
-            int width = Math.min(tilewidth, pingcount - loop);
-            Canvas canvas = addCanvas(width);
-            this.canvases.add(canvas);
-        }
     }
 
     private void fetchSonarData(int offset) {
@@ -154,7 +145,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         }
     }
 
-    public void clearWidget(int totalwidth) {
+    private void clearWidget(int totalwidth) {
         vert.clear();
         vert.setWidth(totalwidth + "px");
         vert.add(labels);
@@ -163,7 +154,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         ruler.setVisible(false);
     }
 
-    public Canvas addCanvas(int canvaswidth) {
+    private Canvas addCanvas(int canvaswidth) {
         Canvas canvas = Canvas.createIfSupported();
         vert.add(canvas);
 
@@ -175,7 +166,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         return canvas;
     }
 
-    public void clearCanvas(Canvas canvas) {
+    private void clearCanvas(Canvas canvas) {
         final Context2d context = canvas.getContext2d();
         context.clearRect(0, 0, canvas.getCoordinateSpaceWidth(),
                 canvas.getCoordinateSpaceHeight());
@@ -189,7 +180,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
      * @param name
      * @param context
      */
-    public void drawBitmap(final int offset, final String name,
+    private void drawBitmap(final int offset, final String name,
             final Context2d context, final Canvas canvas) {
         final Image image = new Image(name);
         RootPanel.get().add(image);
@@ -298,7 +289,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
      * @param context
      *            draw context
      */
-    public void drawOverlay(int offset, final Context2d context) {
+    private void drawOverlay(int offset, final Context2d context) {
         if (!state.overlay) {
             return;
         }
@@ -453,10 +444,5 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         public int getY() {
             return this.y;
         }
-    }
-
-    public void setModel(DepthData model) {
-        this.model = model;
-
     }
 }
