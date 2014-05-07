@@ -122,13 +122,12 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
             String[] depths, String[] temps) {
         Canvas canvas = this.canvases.get((int) (offset / tilewidth));
         clearCanvas(canvas);
-        Context2d context = canvas.getContext2d();
 
         model.appendLowlimit(lowlimits, offset);
         model.appendDepth(depths, offset);
         model.appendTemp(temps, offset);
-        drawBitmap(offset, pic, context, canvas);
-        drawOverlay(offset, context);
+        drawBitmap(offset, pic, canvas);
+        drawOverlay(offset, canvas.getContext2d());
     }
 
     private void fetchSonarData(int offset) {
@@ -181,7 +180,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
      * @param context
      */
     private void drawBitmap(final int offset, final String name,
-            final Context2d context, final Canvas canvas) {
+            final Canvas canvas) {
         final Image image = new Image(name);
         RootPanel.get().add(image);
         image.setVisible(false);
@@ -191,6 +190,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
 
             @Override
             public void onLoad(LoadEvent event) {
+                Context2d context = canvas.getContext2d();
                 canvas.getElement().getStyle().setOpacity(0);
                 context.drawImage(ImageElement.as(image.getElement()), 0, 0,
                         context.getCanvas().getOffsetWidth(), getElement()
