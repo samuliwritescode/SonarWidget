@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.canvas.client.Canvas;
-import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
-import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.RepeatingCommand;
-import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Position;
 import com.google.gwt.dom.client.Style.Unit;
@@ -43,15 +40,6 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     private List<ImageRenderer> renderers;
     private SonarWidgetState state;
     private SonarWidgetConnector connector;
-
-    public static int COLOR_RED = 1;
-    public static int COLOR_GREEN = 2;
-    public static int COLOR_BLUE = 4;
-    public static int COLOR_INVERSE = 8;
-    public static int COLOR_MAPCOLORS = 16;
-    public static int COLOR_MORECONTRAST = 32;
-    public static int COLOR_LESSCONTRAST = 64;
-    public static int COLOR_CONTRASTBOOST = 128;
 
     public static final int tilewidth = 400;
 
@@ -225,7 +213,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
             public void onLoad(LoadEvent event) {
                 canvas.getElement().getStyle().setOpacity(0);
                 ImageRenderer renderer = new ImageRenderer(image, canvas,
-                        offset);
+                        model, VSonarWidget.this, state, offset, tilewidth);
                 renderers.add(renderer);
 
                 float maxDepth = model.getLowlimit(offset);
@@ -366,246 +354,6 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
 
         public int getY() {
             return this.y;
-        }
-    }
-
-    private class ImageRenderer {
-        private Image image;
-        private Canvas canvas;
-        private int offset;
-        private float maxDepthArea = 0.0f;
-        private float range = 0.0f;
-        private boolean isDirty = true;
-
-        public ImageRenderer(Image image, Canvas canvas, int offset) {
-            this.image = image;
-            this.canvas = canvas;
-            this.offset = offset;
-        }
-
-        public void setMaxDepthArea(float maxDepth) {
-            this.maxDepthArea = maxDepth;
-        }
-
-        public float getMaxDepthArea() {
-            return this.maxDepthArea;
-        }
-
-        public void setRange(float range) {
-            if (this.range != range) {
-                this.range = range;
-                isDirty = true;
-            }
-        }
-
-        public boolean isVisible(int p1) {
-            int left = p1;
-            int right = left + getOffsetWidth();
-
-            if (this.offset < left && this.offset + tilewidth < left
-                    || this.offset > right && this.offset + tilewidth > right) {
-                return false;
-            }
-
-            return true;
-        }
-
-        public boolean isCurrentRenderer(int p) {
-
-            if (this.offset <= p && this.offset + tilewidth >= p) {
-                return true;
-            }
-
-            return false;
-        }
-
-        public void render() {
-            if (!isDirty) {
-                return;
-            }
-
-            Context2d context = canvas.getContext2d();
-
-            normalizeImage(ImageElement.as(image.getElement()));
-            colorizeImage(context);
-            drawOverlay(offset, context);
-
-            isDirty = false;
-        }
-
-        private void normalizeImage(ImageElement source) {
-            Context2d context = canvas.getContext2d();
-            int width = context.getCanvas().getOffsetWidth();
-            int height = context.getCanvas().getClientHeight();
-            Canvas tempCanvas = Canvas.createIfSupported();
-            tempCanvas.setCoordinateSpaceWidth(width);
-            tempCanvas.setCoordinateSpaceHeight(height);
-            tempCanvas.getContext2d().drawImage(source, 0, 0, width, height);
-            
-            ImageData tempData = tempCanvas.getContext2d().getImageData(0, 0,
-                    width, height);
-            
-            clearCanvas(canvas);
-            ImageData canvasData = context.getImageData(0, 0, width, height);
-
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    int mappedY = mapToDepth(x + this.offset, y);
-
-                    canvasData
-                            .setAlphaAt(tempData.getAlphaAt(x, y), x, mappedY);
-                    canvasData.setRedAt(tempData.getRedAt(x, y), x, mappedY);
-                    canvasData
-                            .setGreenAt(tempData.getGreenAt(x, y), x, mappedY);
-                    canvasData.setBlueAt(tempData.getBlueAt(x, y), x, mappedY);
-                }
-            }
-
-            context.putImageData(canvasData, 0, 0);
-        }
-
-        private void colorizeImage(Context2d context) {
-            int colormask = state.color;
-            if (colormask == 0) {
-                return;
-            }
-
-            int shift = 1;
-            if ((colormask & COLOR_CONTRASTBOOST) != 0) {
-                shift = 2;
-            }
-
-            ImageData data = context.getImageData(0, 0, context.getCanvas()
-                    .getOffsetWidth(), getElement().getClientHeight());
-            CanvasPixelArray array = data.getData();
-            for (int x = 0; x < array.getLength(); x += 4) {
-                int red = array.get(x);
-                int green = array.get(x + 1);
-                int blue = array.get(x + 2);
-                // int alpha = array.get(x+3);
-
-                red = (colormask & COLOR_RED) != 0 ? red : 0;
-                green = (colormask & COLOR_GREEN) != 0 ? green : 0;
-                blue = (colormask & COLOR_BLUE) != 0 ? blue : 0;
-
-                if ((colormask & COLOR_INVERSE) != 0) {
-                    red = 255 - red;
-                    green = 255 - green;
-                    blue = 255 - blue;
-                }
-
-                if ((colormask & COLOR_MORECONTRAST) != 0) {
-                    red <<= shift;
-                    green <<= shift;
-                    blue <<= shift;
-
-                    red = Math.min(255, red);
-                    green = Math.min(255, green);
-                    blue = Math.min(255, blue);
-                }
-
-                if ((colormask & COLOR_LESSCONTRAST) != 0) {
-                    red >>= shift;
-                    green >>= shift;
-                    blue >>= shift;
-                }
-
-                if ((colormask & COLOR_MAPCOLORS) != 0) {
-                    red &= 0xC0;
-                    green &= 0x60;
-                    blue &= 0x3F;
-                }
-
-                array.set(x, red & 0xFF);
-                array.set(x + 1, green & 0xFF);
-                array.set(x + 2, blue & 0xFF);
-                // array.set(x+3, alpha);
-            }
-
-            context.putImageData(data, 0, 0);
-        }
-        
-        public float getRange() {
-            return this.range;
-        }
-
-        public int mapToDepth(int x, int y) {
-            float lowlimit = model.getLowlimit(x);
-
-            if (lowlimit / this.range >= 1 || this.range == 0.0f) {
-                return y;
-            }
-
-            int mappedY = (int) (y * lowlimit / this.range);
-
-            if (state.sidescan) {
-                mappedY = (int) (mappedY + (canvas.getOffsetHeight() - canvas
-                        .getOffsetHeight() * lowlimit / this.range) / 2);
-            }
-
-            return mappedY;
-        }
-
-        /**
-         * Overlay is drawn on top of depth image. Only red depth line is
-         * implemented so far.
-         * 
-         * @param offset
-         * @param context
-         *            draw context
-         */
-        private void drawOverlay(int offset, final Context2d context) {
-            if (!state.overlay) {
-                return;
-            }
-
-            int width = context.getCanvas().getOffsetWidth();
-            double[] points = new double[width];
-            double[] mirrorpoints = null;
-
-            if (state.sidescan) {
-                mirrorpoints = new double[width];
-            }
-
-            for (int loop = 0; loop < width; loop++) {
-                float depth = model.getDepth(loop + offset);
-                float lowlimit = model.getLowlimit(loop + offset);
-
-                double yPos = getElement().getClientHeight() * depth / lowlimit;
-                yPos = mapToDepth(loop + this.offset, (int) yPos);
-
-                if (state.sidescan) {
-                    yPos = (getElement().getClientHeight() / 2) * depth
-                            / lowlimit + getElement().getClientHeight() / 2;
-                    yPos = mapToDepth(loop + this.offset, (int) yPos);
-                    mirrorpoints[loop] = getElement().getClientHeight() / 2
-                            - (yPos - getElement().getClientHeight() / 2);
-                }
-
-                points[loop] = yPos;
-            }
-
-            drawLine(context, points);
-            if (mirrorpoints != null) {
-                drawLine(context, mirrorpoints);
-            }
-        }
-
-        private void drawLine(Context2d context, double[] points) {
-            context.setStrokeStyle("red");
-            context.beginPath();
-
-            for (int loop = 0; loop < points.length; loop++) {
-                double yPos = points[loop];
-
-                if (loop == 0) {
-                    context.moveTo(loop, yPos);
-                } else {
-                    context.lineTo(loop, yPos);
-                }
-            }
-
-            context.stroke();
         }
     }
 
