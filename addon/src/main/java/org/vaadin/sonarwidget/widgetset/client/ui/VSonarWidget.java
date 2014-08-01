@@ -10,25 +10,20 @@ import com.google.gwt.core.client.Scheduler.RepeatingCommand;
 import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Position;
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.dom.client.LoadEvent;
-import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class VSonarWidget extends ScrollPanel implements ScrollHandler {
 
     private DepthData model;
-    private HorizontalPanel vert;
+    private FlowPanel vert;
     private Label depthlabel;
     private Label templabel;
     private Label cursorlabel;
@@ -36,7 +31,6 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     private VerticalPanel labels;
 
     private List<String> drawn;
-    private List<Canvas> canvases;
     private List<ImageRenderer> renderers;
     private SonarWidgetState state;
     private SonarWidgetConnector connector;
@@ -47,12 +41,11 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         super();
 
         this.drawn = new ArrayList<String>();
-        this.canvases = new ArrayList<Canvas>();
         this.depthlabel = new Label();
         this.templabel = new Label();
         this.cursorlabel = new Label();
         this.renderers = new ArrayList<ImageRenderer>();
-        vert = new HorizontalPanel();
+        vert = new FlowPanel();
         vert.setHeight("100%");
         labels = new VerticalPanel();
         labels.getElement().getStyle().setPosition(Position.FIXED);
@@ -63,7 +56,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         labels.add(depthlabel);
         labels.add(cursorlabel);
         labels.add(templabel);
-        getElement().getStyle().setOverflowX(Overflow.AUTO);
+        getElement().getStyle().setOverflowX(Overflow.SCROLL);
         getElement().getStyle().setOverflowY(Overflow.HIDDEN);
         this.ruler = Canvas.createIfSupported();
         this.ruler.getElement().getStyle().setPosition(Position.FIXED);
@@ -96,27 +89,32 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     }
 
     public void initializeCanvases(int pingcount) {
-        if (this.canvases.isEmpty()) {
+        if (model == null) {
             model = new DepthData(pingcount);
-            clearWidget(pingcount);
-
-            for (int loop = 0; loop < pingcount; loop += tilewidth) {
-                int width = Math.min(tilewidth, pingcount - loop);
-                Canvas canvas = addCanvas(width);
-                this.canvases.add(canvas);
-            }
+            vert.clear();
+            vert.setWidth(pingcount + "px");
+            vert.getElement().getStyle().setPosition(Position.RELATIVE);
+            vert.add(labels);
+            vert.add(ruler);
+            labels.getElement().getStyle().setZIndex(10);
+            ruler.getElement().getStyle().setZIndex(10);
+            labels.setVisible(false);
+            ruler.setVisible(false);
         }
     }
 
     public void setOffset(int offset, String pic, String[] lowlimits,
             String[] depths, String[] temps) {
-        Canvas canvas = this.canvases.get((int) (offset / tilewidth));
-        clearCanvas(canvas);
-
         model.appendLowlimit(lowlimits, offset);
         model.appendDepth(depths, offset);
         model.appendTemp(temps, offset);
-        drawBitmap(offset, pic, canvas);
+
+        ImageRenderer renderer = new ImageRenderer(pic, model,
+                VSonarWidget.this, state, offset, depths.length);
+        this.vert.add(renderer.getCanvas());
+
+        renderer.clearCanvas();
+        renderers.add(renderer);
     }
 
     private void fetchSonarData(int offset) {
@@ -129,6 +127,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
             } else {
                 this.drawn.add(new Integer(loop).toString());
             }
+
             connector.getData(getElement().getClientHeight(), tilewidth, loop);
         }
         
@@ -136,7 +135,6 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     }
 
     private void render(int offset) {
-
         float range = 0f;
 
         for (ImageRenderer renderer : renderers) {
@@ -163,89 +161,6 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         }
 
         return null;
-    }
-
-    private void clearWidget(int totalwidth) {
-        vert.clear();
-        vert.setWidth(totalwidth + "px");
-        vert.add(labels);
-        vert.add(ruler);
-        labels.setVisible(false);
-        ruler.setVisible(false);
-    }
-
-    private Canvas addCanvas(int canvaswidth) {
-        Canvas canvas = Canvas.createIfSupported();
-        vert.add(canvas);
-
-        canvas.setCoordinateSpaceHeight(getElement().getClientHeight());
-        canvas.setHeight(getElement().getClientHeight() + "px");
-        canvas.setCoordinateSpaceWidth(canvaswidth);
-        canvas.setWidth(canvaswidth + "px");
-
-        return canvas;
-    }
-
-    private void clearCanvas(Canvas canvas) {
-        final Context2d context = canvas.getContext2d();
-        context.clearRect(0, 0, canvas.getCoordinateSpaceWidth(),
-                canvas.getCoordinateSpaceHeight());
-    }
-
-    /**
-     * Depth bitmap drawing is animated starting from fully transparent. Image
-     * tag is hidden and it's content is drawn to HTML5 canvas.
-     * 
-     * @param offset
-     * @param name
-     * @param context
-     */
-    private void drawBitmap(final int offset, final String name,
-            final Canvas canvas) {
-        final Image image = new Image(name);
-        RootPanel.get().add(image);
-        image.setVisible(false);
-
-        // When image loads start transition animation
-        image.addLoadHandler(new LoadHandler() {
-
-            @Override
-            public void onLoad(LoadEvent event) {
-                canvas.getElement().getStyle().setOpacity(0);
-                ImageRenderer renderer = new ImageRenderer(image, canvas,
-                        model, VSonarWidget.this, state, offset, tilewidth);
-                renderers.add(renderer);
-
-                float maxDepth = model.getLowlimit(offset);
-                for (int loop = offset; loop < offset + tilewidth; loop++) {
-                    float lowlimit = model.getLowlimit(loop);
-                    if (maxDepth < lowlimit) {
-                        maxDepth = lowlimit;
-                    }
-                }
-
-                renderer.setMaxDepthArea(maxDepth);
-
-                new Timer() {
-                    private int alpha = 0;
-
-                    @Override
-                    public void run() {
-
-                        canvas.getElement().getStyle().setOpacity(alpha * 0.1);
-
-                        // when animation has reached
-                        // zero opacity stop animation timer.
-                        if (alpha >= 10) {
-                            render(offset);
-                            this.cancel();
-                        }
-
-                        alpha++;
-                    }
-                }.scheduleRepeating(24);
-            }
-        });
     }
 
     private void updateRuler(int coordinate) {

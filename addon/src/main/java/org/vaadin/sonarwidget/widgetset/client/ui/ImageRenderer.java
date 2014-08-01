@@ -5,7 +5,13 @@ import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.dom.client.ImageElement;
+import com.google.gwt.dom.client.Style.Position;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class ImageRenderer {
@@ -14,7 +20,7 @@ public class ImageRenderer {
     private int offset;
     private float maxDepthArea = 0.0f;
     private float range = 0.0f;
-    private boolean isDirty = true;
+    private boolean isDirty = false;
     private DepthData model;
     private Widget parent;
     private SonarWidgetState state;
@@ -29,15 +35,77 @@ public class ImageRenderer {
     public static int COLOR_LESSCONTRAST = 64;
     public static int COLOR_CONTRASTBOOST = 128;
 
-    public ImageRenderer(Image image, Canvas canvas, DepthData model,
-            Widget parent, SonarWidgetState state, int offset, int tilewidth) {
-        this.image = image;
-        this.canvas = canvas;
+    public ImageRenderer(String pic, DepthData model, Widget parent,
+            SonarWidgetState state, int offset, int tilewidth) {
+        this.image = new Image(pic);
+        RootPanel.get().add(image);
+        image.setVisible(false);
         this.offset = offset;
         this.model = model;
         this.parent = parent;
         this.state = state;
         this.tilewidth = tilewidth;
+        this.canvas = addCanvas(tilewidth);
+
+        // When image loads start transition animation
+        this.image.addLoadHandler(new LoadHandler() {
+
+            @Override
+            public void onLoad(LoadEvent event) {
+
+                getCanvas().getElement().getStyle().setOpacity(0);
+
+                float maxDepth = ImageRenderer.this.model
+                        .getLowlimit(ImageRenderer.this.offset);
+                for (int loop = ImageRenderer.this.offset; loop < ImageRenderer.this.offset
+                        + VSonarWidget.tilewidth; loop++) {
+                    float lowlimit = ImageRenderer.this.model.getLowlimit(loop);
+                    if (maxDepth < lowlimit) {
+                        maxDepth = lowlimit;
+                    }
+                }
+
+                setMaxDepthArea(maxDepth);
+
+                new Timer() {
+                    private int alpha = 0;
+
+                    @Override
+                    public void run() {
+
+                        getCanvas().getElement().getStyle()
+                                .setOpacity(alpha * 0.1);
+
+                        // when animation has reached
+                        // zero opacity stop animation timer.
+                        if (alpha >= 10) {
+                            isDirty = true;
+                            render();
+                            this.cancel();
+                        }
+
+                        alpha++;
+                    }
+                }.scheduleRepeating(24);
+            }
+        });
+    }
+
+    private Canvas addCanvas(int canvaswidth) {
+        Canvas canvas = Canvas.createIfSupported();
+
+        canvas.setCoordinateSpaceHeight(parent.getElement().getClientHeight());
+        canvas.setHeight(parent.getElement().getClientHeight() + "px");
+        canvas.setCoordinateSpaceWidth(canvaswidth);
+        canvas.setWidth(canvaswidth + "px");
+        canvas.getElement().getStyle().setPosition(Position.ABSOLUTE);
+        canvas.getElement().getStyle().setLeft(offset, Unit.PX);
+
+        return canvas;
+    }
+
+    public Canvas getCanvas() {
+        return this.canvas;
     }
 
     public void setMaxDepthArea(float maxDepth) {
@@ -90,7 +158,7 @@ public class ImageRenderer {
         isDirty = false;
     }
 
-    private void clearCanvas(Canvas canvas) {
+    public void clearCanvas() {
         final Context2d context = canvas.getContext2d();
         context.clearRect(0, 0, canvas.getCoordinateSpaceWidth(),
                 canvas.getCoordinateSpaceHeight());
@@ -108,7 +176,7 @@ public class ImageRenderer {
         ImageData tempData = tempCanvas.getContext2d().getImageData(0, 0,
                 width, height);
 
-        clearCanvas(canvas);
+        clearCanvas();
         ImageData canvasData = context.getImageData(0, 0, width, height);
 
         for (int x = 0; x < width; x++) {
