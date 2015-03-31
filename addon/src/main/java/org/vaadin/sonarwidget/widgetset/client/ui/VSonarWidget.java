@@ -135,12 +135,15 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     }
 
     private void render(int offset) {
-        float range = 0f;
+        float range = state.range;
 
-        for (ImageRenderer renderer : renderers) {
-            if (renderer.isVisible(offset)) {
-                if (renderer.getMaxDepthArea() > range) {
-                    range = renderer.getMaxDepthArea();
+        // Let 0 be autorange.
+        if (range == 0) {
+            for (ImageRenderer renderer : renderers) {
+                if (renderer.isVisible(offset)) {
+                    if (renderer.getMaxDepthArea() > range) {
+                        range = renderer.getMaxDepthArea();
+                    }
                 }
             }
         }

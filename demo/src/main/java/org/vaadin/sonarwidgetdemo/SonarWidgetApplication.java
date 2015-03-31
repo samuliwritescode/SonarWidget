@@ -9,6 +9,7 @@ import org.vaadin.sonarwidget.data.Sonar.Type;
 
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
@@ -22,6 +23,7 @@ public class SonarWidgetApplication extends UI {
     private boolean overlay = false;
     private int colorbits = 0;
     private VerticalLayout sonarLayout;
+    private float range;
 
     @Override
     protected void init(VaadinRequest request) {
@@ -29,6 +31,7 @@ public class SonarWidgetApplication extends UI {
         HorizontalLayout controlLayout = new HorizontalLayout();
         sonarLayout = new VerticalLayout();
         ComboBox selector = new ComboBox("Select file");
+        ComboBox rangeSelector = new ComboBox("Range");
         CheckBox overlayCheck = new CheckBox("Overlay");
         OptionGroup colorsettings = new OptionGroup("Color settings");
 
@@ -64,6 +67,25 @@ public class SonarWidgetApplication extends UI {
             }
         });
 
+        rangeSelector.setImmediate(true);
+        rangeSelector.setNullSelectionAllowed(false);
+        rangeSelector.addItem(0f);
+        rangeSelector.addItem(3.0f);
+        rangeSelector.addItem(10.0f);
+        rangeSelector.addItem(20.0f);
+        rangeSelector.addItem(40.0f);
+        rangeSelector.addItem(60.0f);
+        rangeSelector.addItem(80.0f);
+        rangeSelector.setValue(0f);
+        rangeSelector.addValueChangeListener(new ValueChangeListener() {
+
+            @Override
+            public void valueChange(ValueChangeEvent event) {
+                range = (Float) event.getProperty().getValue();
+                drawSonarWidget();
+            }
+        });
+
         overlayCheck.setImmediate(true);
         overlayCheck.addValueChangeListener(new Property.ValueChangeListener() {
 
@@ -90,6 +112,7 @@ public class SonarWidgetApplication extends UI {
         controlLayout.addComponent(selector);
         controlLayout.addComponent(overlayCheck);
         controlLayout.addComponent(colorsettings);
+        controlLayout.addComponent(rangeSelector);
         layout.addComponent(controlLayout);
         layout.addComponent(sonarLayout);
         setContent(layout);
@@ -117,6 +140,7 @@ public class SonarWidgetApplication extends UI {
         sonarWidget.setWidth("100%");
         sonarWidget.setColor(colorbits);
         sonarWidget.setOverlay(overlay);
+        sonarWidget.setRange(range);
         sonarLayout.addComponent(sonarWidget);
     }
 }

@@ -8,5 +8,6 @@ public class SonarWidgetState extends AbstractComponentState {
     public int color;
     public boolean overlay;
     public boolean sidescan;
+    public float range;
     public long pingCount;
 }

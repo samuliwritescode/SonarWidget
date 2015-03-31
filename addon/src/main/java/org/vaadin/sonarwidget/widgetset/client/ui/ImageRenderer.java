@@ -180,13 +180,28 @@ public class ImageRenderer {
         ImageData canvasData = context.getImageData(0, 0, width, height);
 
         for (int x = 0; x < width; x++) {
+            // Interpolate is a small hack to scale image upwards to fill empty
+            // lines. Variable tells how many lines will be repeated.
+            int interpolate = 1;
+            if (range > 0.0f) {
+                interpolate = (int) (1.0f + model.getLowlimit(x + this.offset)
+                        / range);
+            }
+
+
             for (int y = 0; y < height; y++) {
                 int mappedY = mapToDepth(x + this.offset, y);
 
-                canvasData.setAlphaAt(tempData.getAlphaAt(x, y), x, mappedY);
-                canvasData.setRedAt(tempData.getRedAt(x, y), x, mappedY);
-                canvasData.setGreenAt(tempData.getGreenAt(x, y), x, mappedY);
-                canvasData.setBlueAt(tempData.getBlueAt(x, y), x, mappedY);
+                for (int i = 0; i < interpolate; i++) {
+                    canvasData.setAlphaAt(tempData.getAlphaAt(x, y), x, mappedY
+                            + i);
+                    canvasData
+                            .setRedAt(tempData.getRedAt(x, y), x, mappedY + i);
+                    canvasData.setGreenAt(tempData.getGreenAt(x, y), x, mappedY
+                            + i);
+                    canvasData.setBlueAt(tempData.getBlueAt(x, y), x, mappedY
+                            + i);
+                }
             }
         }
 
@@ -261,7 +276,7 @@ public class ImageRenderer {
     public int mapToDepth(int x, int y) {
         float lowlimit = model.getLowlimit(x);
 
-        if (lowlimit / this.range >= 1 || this.range == 0.0f) {
+        if (this.range == 0.0f) {
             return y;
         }
 

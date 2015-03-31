@@ -141,6 +141,10 @@ public class SonarWidget extends AbstractComponent {
         getState().color = color;
     }
 
+    public void setRange(float range) {
+        getState().range = range;
+    }
+
     private BufferedImage createImage(Sonar sonar, int offset, int width,
             int height) {
         BufferedImage image = new BufferedImage(width, height,
