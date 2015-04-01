@@ -84,6 +84,13 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
 
     public void setState(SonarWidgetState state) {
         this.state = state;
+        for (ImageRenderer renderer : renderers) {
+            renderer.setOverlay(state.overlay);
+            renderer.setColor(state.color);
+            renderer.setSidescan(state.sidescan);
+        }
+
+        render(getHorizontalScrollPosition());
     }
 
     public void setConnector(SonarWidgetConnector connector) {
@@ -120,7 +127,10 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         };
 
         ImageRenderer renderer = new ImageRenderer(pic, model,
-                VSonarWidget.this, state, offset, depths.length, listener);
+                VSonarWidget.this, offset, depths.length, listener);
+        renderer.setOverlay(state.overlay);
+        renderer.setColor(state.color);
+        renderer.setSidescan(state.sidescan);
         this.vert.add(renderer.getCanvas());
 
         renderer.clearCanvas();

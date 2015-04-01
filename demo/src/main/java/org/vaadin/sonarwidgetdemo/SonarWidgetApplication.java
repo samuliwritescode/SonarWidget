@@ -82,7 +82,7 @@ public class SonarWidgetApplication extends UI {
             @Override
             public void valueChange(ValueChangeEvent event) {
                 range = (Float) event.getProperty().getValue();
-                drawSonarWidget();
+                reDrawSonarWidget();
             }
         });
 
@@ -92,7 +92,7 @@ public class SonarWidgetApplication extends UI {
             @Override
             public void valueChange(ValueChangeEvent event) {
                 overlay = (Boolean) event.getProperty().getValue();
-                drawSonarWidget();
+                reDrawSonarWidget();
             }
         });
 
@@ -103,7 +103,7 @@ public class SonarWidgetApplication extends UI {
                     @Override
                     public void valueChange(ValueChangeEvent event) {
                         colorbits = (Integer) event.getProperty().getValue();
-                        drawSonarWidget();
+                        reDrawSonarWidget();
                     }
                 });
 
@@ -138,9 +138,16 @@ public class SonarWidgetApplication extends UI {
         }
 
         sonarWidget.setWidth("100%");
-        sonarWidget.setColor(colorbits);
-        sonarWidget.setOverlay(overlay);
-        sonarWidget.setRange(range);
         sonarLayout.addComponent(sonarWidget);
+        reDrawSonarWidget();
+    }
+
+    private void reDrawSonarWidget() {
+        if (sonarLayout.getComponentCount() > 0) {
+            SonarWidget sonarWidget = (SonarWidget) sonarLayout.getComponent(0);
+            sonarWidget.setColor(colorbits);
+            sonarWidget.setOverlay(overlay);
+            sonarWidget.setRange(range);
+        }
     }
 }

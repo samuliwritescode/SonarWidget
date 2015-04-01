@@ -23,8 +23,10 @@ public class ImageRenderer {
     private boolean isDirty = false;
     private DepthData model;
     private Widget parent;
-    private SonarWidgetState state;
     private int tilewidth;
+    private boolean sidescan;
+    private boolean overlay;
+    private int color;
 
     public static int COLOR_RED = 1;
     public static int COLOR_GREEN = 2;
@@ -40,7 +42,7 @@ public class ImageRenderer {
     }
 
     public ImageRenderer(String pic, DepthData model, Widget parent,
-            SonarWidgetState state, final int offset, int tilewidth,
+            final int offset, int tilewidth,
             final Listener listener) {
         this.image = new Image(pic);
         RootPanel.get().add(image);
@@ -48,7 +50,6 @@ public class ImageRenderer {
         this.offset = offset;
         this.model = model;
         this.parent = parent;
-        this.state = state;
         this.tilewidth = tilewidth;
         this.canvas = addCanvas(tilewidth);
 
@@ -126,6 +127,30 @@ public class ImageRenderer {
             this.range = range;
             isDirty = true;
         }
+    }
+
+    public void setColor(int color) {
+        if (this.color != color) {
+            isDirty = true;
+        }
+
+        this.color = color;
+    }
+
+    public void setOverlay(boolean overlay) {
+        if (this.overlay != overlay) {
+            isDirty = true;
+        }
+
+        this.overlay = overlay;
+    }
+
+    public void setSidescan(boolean sidescan) {
+        if (this.sidescan != sidescan) {
+            isDirty = true;
+        }
+
+        this.sidescan = sidescan;
     }
 
     public boolean isVisible(int p1) {
@@ -214,7 +239,7 @@ public class ImageRenderer {
     }
 
     private void colorizeImage(Context2d context) {
-        int colormask = state.color;
+        int colormask = color;
         if (colormask == 0) {
             return;
         }
@@ -287,7 +312,7 @@ public class ImageRenderer {
 
         int mappedY = (int) (y * lowlimit / this.range);
 
-        if (state.sidescan) {
+        if (sidescan) {
             mappedY = (int) (mappedY + (canvas.getOffsetHeight() - canvas
                     .getOffsetHeight() * lowlimit / this.range) / 2);
         }
@@ -304,7 +329,7 @@ public class ImageRenderer {
      *            draw context
      */
     private void drawOverlay(int offset, final Context2d context) {
-        if (!state.overlay) {
+        if (!overlay) {
             return;
         }
 
@@ -312,7 +337,7 @@ public class ImageRenderer {
         double[] points = new double[width];
         double[] mirrorpoints = null;
 
-        if (state.sidescan) {
+        if (sidescan) {
             mirrorpoints = new double[width];
         }
 
@@ -324,7 +349,7 @@ public class ImageRenderer {
                     / lowlimit;
             yPos = mapToDepth(loop + this.offset, (int) yPos);
 
-            if (state.sidescan) {
+            if (sidescan) {
                 yPos = (parent.getElement().getClientHeight() / 2) * depth
                         / lowlimit + parent.getElement().getClientHeight() / 2;
                 yPos = mapToDepth(loop + this.offset, (int) yPos);
