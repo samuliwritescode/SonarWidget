@@ -3,6 +3,8 @@ package org.vaadin.sonarwidget.widgetset.client.ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.vaadin.sonarwidget.widgetset.client.ui.ImageRenderer.Listener;
+
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.core.client.Scheduler;
@@ -109,8 +111,16 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         model.appendDepth(depths, offset);
         model.appendTemp(temps, offset);
 
+        Listener listener = new ImageRenderer.Listener() {
+
+            @Override
+            public void doneLoading(int offset) {
+                render(offset);
+            }
+        };
+
         ImageRenderer renderer = new ImageRenderer(pic, model,
-                VSonarWidget.this, state, offset, depths.length);
+                VSonarWidget.this, state, offset, depths.length, listener);
         this.vert.add(renderer.getCanvas());
 
         renderer.clearCanvas();
@@ -130,11 +140,9 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
 
             connector.getData(getElement().getClientHeight(), tilewidth, loop);
         }
-        
-        render(offset);
     }
 
-    private void render(int offset) {
+    public void render(int offset) {
         float range = state.range;
 
         // Let 0 be autorange.
@@ -204,6 +212,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     public void onScroll(ScrollEvent event) {
         // init lazy loading
         fetchSonarData(getHorizontalScrollPosition());
+        render(getHorizontalScrollPosition());
     }
 
     private void onMouseHover(Point coordinate) {

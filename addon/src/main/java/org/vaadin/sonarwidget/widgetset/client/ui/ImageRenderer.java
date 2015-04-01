@@ -35,8 +35,13 @@ public class ImageRenderer {
     public static int COLOR_LESSCONTRAST = 64;
     public static int COLOR_CONTRASTBOOST = 128;
 
+    public interface Listener {
+        void doneLoading(int offset);
+    }
+
     public ImageRenderer(String pic, DepthData model, Widget parent,
-            SonarWidgetState state, int offset, int tilewidth) {
+            SonarWidgetState state, final int offset, int tilewidth,
+            final Listener listener) {
         this.image = new Image(pic);
         RootPanel.get().add(image);
         image.setVisible(false);
@@ -80,7 +85,7 @@ public class ImageRenderer {
                         // zero opacity stop animation timer.
                         if (alpha >= 10) {
                             isDirty = true;
-                            render();
+                            listener.doneLoading(offset);
                             this.cancel();
                         }
 
