@@ -69,6 +69,7 @@ public class SonarWidgetApplication extends UI {
         colorsettings.setItemCaption(167, "Even more contrast");
         colorsettings.setItemCaption(71, "Less contrast");
         colorsettings.setItemCaption(199, "Even less contrast");
+        colorsettings.setValue(0);
         selector.setImmediate(true);
         selector.setNullSelectionAllowed(false);
         selector.addItem("SideScan Sonar0001.sl2");
