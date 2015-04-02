@@ -198,44 +198,49 @@ public class ImageRenderer {
         Context2d context = canvas.getContext2d();
         int width = context.getCanvas().getOffsetWidth();
         int height = context.getCanvas().getClientHeight();
-        Canvas tempCanvas = Canvas.createIfSupported();
-        tempCanvas.setCoordinateSpaceWidth(width);
-        tempCanvas.setCoordinateSpaceHeight(height);
-        tempCanvas.getContext2d().drawImage(source, 0, 0, width, height);
-
-        ImageData tempData = tempCanvas.getContext2d().getImageData(0, 0,
-                width, height);
+        int depthRangeStart = 0;
+        int prevDepthRange = 0;
+        float scaling = 1;
 
         clearCanvas();
-        ImageData canvasData = context.getImageData(0, 0, width, height);
 
+        // draw canvas in sections cut in depth ranges.
         for (int x = 0; x < width; x++) {
-            // Interpolate is a small hack to scale image upwards to fill empty
-            // lines. Variable tells how many lines will be repeated.
-            int interpolate = 1;
-            if (range > 0.0f) {
-                interpolate = (int) (1.0f + model.getLowlimit(x + this.offset)
-                        / range);
+            int depthRange = height;
+
+            if (this.range != 0.0f) {
+                depthRange = (int) (((float) height)
+                        * model.getLowlimit(offset + x) / this.range);
             }
 
-
-            for (int y = 0; y < height; y++) {
-                int mappedY = mapToDepth(x + this.offset, y);
-
-                for (int i = 0; i < interpolate; i++) {
-                    canvasData.setAlphaAt(tempData.getAlphaAt(x, y), x, mappedY
-                            + i);
-                    canvasData
-                            .setRedAt(tempData.getRedAt(x, y), x, mappedY + i);
-                    canvasData.setGreenAt(tempData.getGreenAt(x, y), x, mappedY
-                            + i);
-                    canvasData.setBlueAt(tempData.getBlueAt(x, y), x, mappedY
-                            + i);
+            // scaling has changed so draw section here
+            if (prevDepthRange != depthRange) {
+                if (sidescan) {
+                    context.drawImage(source, depthRangeStart, 0, x
+                            - depthRangeStart, height, depthRangeStart,
+                            (height - (height / scaling)) / 2, x
+                                    - depthRangeStart, height / scaling);
+                } else {
+                    context.drawImage(source, depthRangeStart, 0, x
+                            - depthRangeStart, height, depthRangeStart, 0, x
+                            - depthRangeStart, height / scaling);
                 }
+                depthRangeStart = x;
             }
+
+            scaling = (float) height / (float) depthRange;
+            prevDepthRange = depthRange;
         }
 
-        context.putImageData(canvasData, 0, 0);
+        // draw tail section
+        if (sidescan) {
+            context.drawImage(source, depthRangeStart, 0, width, height,
+                    depthRangeStart, (height - (height / scaling)) / 2, width,
+                    height / scaling);
+        } else {
+            context.drawImage(source, depthRangeStart, 0, width, height,
+                    depthRangeStart, 0, width, height / scaling);
+        }
     }
 
     private void colorizeImage(Context2d context) {
