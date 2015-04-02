@@ -214,7 +214,7 @@ public class ImageRenderer {
             }
 
             // scaling has changed so draw section here
-            if (prevDepthRange != depthRange) {
+            if (prevDepthRange != depthRange && x > 0) {
                 if (sidescan) {
                     context.drawImage(source, depthRangeStart, 0, x
                             - depthRangeStart, height, depthRangeStart,
@@ -225,6 +225,7 @@ public class ImageRenderer {
                             - depthRangeStart, height, depthRangeStart, 0, x
                             - depthRangeStart, height / scaling);
                 }
+
                 depthRangeStart = x;
             }
 
