@@ -47,10 +47,28 @@ public class SonarWidgetApplication extends UI {
         colorsettings.addItem(SonarWidget.COLOR_BLUE | SonarWidget.COLOR_GREEN
                 | SonarWidget.COLOR_RED | SonarWidget.COLOR_INVERSE);
 
+        colorsettings.addItem(SonarWidget.COLOR_BLUE | SonarWidget.COLOR_GREEN
+                | SonarWidget.COLOR_RED | SonarWidget.COLOR_MORECONTRAST);
+
+        colorsettings.addItem(SonarWidget.COLOR_BLUE | SonarWidget.COLOR_GREEN
+                | SonarWidget.COLOR_RED | SonarWidget.COLOR_MORECONTRAST
+                | SonarWidget.COLOR_CONTRASTBOOST);
+
+        colorsettings.addItem(SonarWidget.COLOR_BLUE | SonarWidget.COLOR_GREEN
+                | SonarWidget.COLOR_RED | SonarWidget.COLOR_LESSCONTRAST);
+
+        colorsettings.addItem(SonarWidget.COLOR_BLUE | SonarWidget.COLOR_GREEN
+                | SonarWidget.COLOR_RED | SonarWidget.COLOR_LESSCONTRAST
+                | SonarWidget.COLOR_CONTRASTBOOST);
+
         colorsettings.setItemCaption(0, "BW");
         colorsettings.setItemCaption(6, "Bluish");
         colorsettings.setItemCaption(23, "Mapped colors");
         colorsettings.setItemCaption(15, "Inverse BW");
+        colorsettings.setItemCaption(39, "More contrast");
+        colorsettings.setItemCaption(167, "Even more contrast");
+        colorsettings.setItemCaption(71, "Less contrast");
+        colorsettings.setItemCaption(199, "Even less contrast");
         selector.setImmediate(true);
         selector.setNullSelectionAllowed(false);
         selector.addItem("SideScan Sonar0001.sl2");
