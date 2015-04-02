@@ -234,13 +234,15 @@ public class ImageRenderer {
         }
 
         // draw tail section
-        if (sidescan) {
-            context.drawImage(source, depthRangeStart, 0, width, height,
-                    depthRangeStart, (height - (height / scaling)) / 2, width,
+        if (sidescan && depthRangeStart != width) {
+            context.drawImage(source, depthRangeStart, 0, width
+                    - depthRangeStart, height, depthRangeStart,
+                    (height - (height / scaling)) / 2, width - depthRangeStart,
                     height / scaling);
-        } else {
-            context.drawImage(source, depthRangeStart, 0, width, height,
-                    depthRangeStart, 0, width, height / scaling);
+        } else if (depthRangeStart != width) {
+            context.drawImage(source, depthRangeStart, 0, width
+                    - depthRangeStart, height, depthRangeStart, 0, width
+                    - depthRangeStart, height / scaling);
         }
     }
 
