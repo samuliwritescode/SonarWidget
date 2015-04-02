@@ -82,6 +82,15 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         });
     }
 
+    public void setDirty() {
+        for (ImageRenderer renderer : renderers) {
+            renderer.setOverlay(!this.state.overlay);
+            renderer.setOverlay(this.state.overlay);
+        }
+
+        onScroll(null);
+    }
+
     public void setState(SonarWidgetState state) {
         this.state = state;
         for (ImageRenderer renderer : renderers) {

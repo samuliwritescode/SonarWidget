@@ -5,10 +5,13 @@ import org.vaadin.sonarwidget.SonarWidget;
 import com.vaadin.client.communication.RpcProxy;
 import com.vaadin.client.communication.StateChangeEvent;
 import com.vaadin.client.ui.AbstractComponentConnector;
+import com.vaadin.client.ui.layout.ElementResizeEvent;
+import com.vaadin.client.ui.layout.ElementResizeListener;
 import com.vaadin.shared.ui.Connect;
 
 @Connect(SonarWidget.class)
-public class SonarWidgetConnector extends AbstractComponentConnector {
+public class SonarWidgetConnector extends AbstractComponentConnector implements
+        ElementResizeListener {
 
     private static final long serialVersionUID = 1L;
     SonarWidgetServerRpc serverRpc = RpcProxy
@@ -50,5 +53,24 @@ public class SonarWidgetConnector extends AbstractComponentConnector {
 
     public void getData(int height, int width, int index) {
         serverRpc.fetchSonarData(height, width, index);
+    }
+
+    @Override
+    public void onElementResize(ElementResizeEvent e) {
+        getWidget().setDirty();
+    }
+
+    @Override
+    public void onUnregister() {
+        super.onUnregister();
+        getLayoutManager().removeElementResizeListener(
+                getWidget().getElement(), this);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        getLayoutManager().addElementResizeListener(getWidget().getElement(),
+                this);
     }
 }

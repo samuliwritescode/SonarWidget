@@ -180,6 +180,8 @@ public class ImageRenderer {
         }
 
         Context2d context = canvas.getContext2d();
+        canvas.setCoordinateSpaceHeight(parent.getElement().getClientHeight());
+        canvas.setHeight(parent.getElement().getClientHeight() + "px");
 
         normalizeImage(ImageElement.as(image.getElement()));
         colorizeImage(context);
@@ -198,6 +200,8 @@ public class ImageRenderer {
         Context2d context = canvas.getContext2d();
         int width = context.getCanvas().getOffsetWidth();
         int height = context.getCanvas().getClientHeight();
+
+        int sourceHeight = source.getHeight();
         int depthRangeStart = 0;
         int prevDepthRange = 0;
         float scaling = 1;
@@ -217,12 +221,13 @@ public class ImageRenderer {
             if (prevDepthRange != depthRange && x > 0) {
                 if (sidescan) {
                     context.drawImage(source, depthRangeStart, 0, x
-                            - depthRangeStart, height, depthRangeStart,
+                            - depthRangeStart, sourceHeight, depthRangeStart,
                             (height - (height / scaling)) / 2, x
                                     - depthRangeStart, height / scaling);
                 } else {
                     context.drawImage(source, depthRangeStart, 0, x
-                            - depthRangeStart, height, depthRangeStart, 0, x
+                            - depthRangeStart, sourceHeight, depthRangeStart,
+                            0, x
                             - depthRangeStart, height / scaling);
                 }
 
@@ -236,12 +241,12 @@ public class ImageRenderer {
         // draw tail section
         if (sidescan && depthRangeStart != width) {
             context.drawImage(source, depthRangeStart, 0, width
-                    - depthRangeStart, height, depthRangeStart,
+                    - depthRangeStart, sourceHeight, depthRangeStart,
                     (height - (height / scaling)) / 2, width - depthRangeStart,
                     height / scaling);
         } else if (depthRangeStart != width) {
             context.drawImage(source, depthRangeStart, 0, width
-                    - depthRangeStart, height, depthRangeStart, 0, width
+                    - depthRangeStart, sourceHeight, depthRangeStart, 0, width
                     - depthRangeStart, height / scaling);
         }
     }

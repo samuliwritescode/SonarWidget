@@ -31,6 +31,7 @@ public class SonarWidgetApplication extends UI {
         VerticalLayout layout = new VerticalLayout();
         HorizontalLayout controlLayout = new HorizontalLayout();
         sonarLayout = new VerticalLayout();
+        sonarLayout.setSizeFull();
         ComboBox selector = new ComboBox("Select file");
         ComboBox rangeSelector = new ComboBox("Range by select");
         Slider rangeSlider = new Slider("Range by slider");
@@ -150,6 +151,9 @@ public class SonarWidgetApplication extends UI {
         controlLayout.addComponent(rangeSlider);
         layout.addComponent(controlLayout);
         layout.addComponent(sonarLayout);
+        layout.setSizeFull();
+        layout.setExpandRatio(controlLayout, 0.0f);
+        layout.setExpandRatio(sonarLayout, 1.0f);
         setContent(layout);
     }
 
@@ -166,13 +170,7 @@ public class SonarWidgetApplication extends UI {
         SonarWidget sonarWidget = new SonarWidget(new File(
                 "/Users/cape/Code/sonar/" + filename), type);
 
-        if (type == Type.eSideScan) {
-            sonarWidget.setHeight("600px");
-        } else {
-            sonarWidget.setHeight("300px");
-        }
-
-        sonarWidget.setWidth("100%");
+        sonarWidget.setSizeFull();
         sonarLayout.addComponent(sonarWidget);
         reDrawSonarWidget();
     }
