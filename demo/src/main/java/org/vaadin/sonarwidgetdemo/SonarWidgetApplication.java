@@ -89,7 +89,7 @@ public class SonarWidgetApplication extends UI {
         });
 
         rangeSlider.setWidth("150px");
-        rangeSlider.setMin(0);
+        rangeSlider.setMin(1);
         rangeSlider.setMax(120);
         rangeSlider.setImmediate(true);
         rangeSlider.addValueChangeListener(new ValueChangeListener() {
