@@ -15,6 +15,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Slider;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
@@ -31,7 +32,8 @@ public class SonarWidgetApplication extends UI {
         HorizontalLayout controlLayout = new HorizontalLayout();
         sonarLayout = new VerticalLayout();
         ComboBox selector = new ComboBox("Select file");
-        ComboBox rangeSelector = new ComboBox("Range");
+        ComboBox rangeSelector = new ComboBox("Range by select");
+        Slider rangeSlider = new Slider("Range by slider");
         CheckBox overlayCheck = new CheckBox("Overlay");
         OptionGroup colorsettings = new OptionGroup("Color settings");
 
@@ -86,6 +88,18 @@ public class SonarWidgetApplication extends UI {
             }
         });
 
+        rangeSlider.setWidth("150px");
+        rangeSlider.setMin(0);
+        rangeSlider.setMax(120);
+        rangeSlider.setImmediate(true);
+        rangeSlider.addValueChangeListener(new ValueChangeListener() {
+
+            @Override
+            public void valueChange(ValueChangeEvent event) {
+                range = ((Double) event.getProperty().getValue()).floatValue();
+                reDrawSonarWidget();
+            }
+        });
         rangeSelector.setImmediate(true);
         rangeSelector.setNullSelectionAllowed(false);
         rangeSelector.addItem(0f);
@@ -96,6 +110,7 @@ public class SonarWidgetApplication extends UI {
         rangeSelector.addItem(60.0f);
         rangeSelector.addItem(80.0f);
         rangeSelector.setValue(0f);
+        rangeSelector.setItemCaption(0f, "Auto");
         rangeSelector.addValueChangeListener(new ValueChangeListener() {
 
             @Override
@@ -132,6 +147,7 @@ public class SonarWidgetApplication extends UI {
         controlLayout.addComponent(overlayCheck);
         controlLayout.addComponent(colorsettings);
         controlLayout.addComponent(rangeSelector);
+        controlLayout.addComponent(rangeSlider);
         layout.addComponent(controlLayout);
         layout.addComponent(sonarLayout);
         setContent(layout);
