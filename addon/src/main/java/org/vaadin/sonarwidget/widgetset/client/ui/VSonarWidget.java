@@ -60,6 +60,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         labels = new VerticalPanel();
         labels.getElement().getStyle().setPosition(Position.FIXED);
         labels.setStyleName("v-sonarwidget-labels");
+        addStyleName("v-sonarwidget");
 
         setWidget(vert);
         vert.add(labels);
@@ -70,6 +71,7 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         getElement().getStyle().setOverflowY(Overflow.HIDDEN);
         this.ruler = Canvas.createIfSupported();
         this.ruler.getElement().getStyle().setPosition(Position.FIXED);
+        this.ruler.addStyleName("v-sonarwidget-ruler");
 
         sinkEvents(Event.ONMOUSEMOVE);
 
