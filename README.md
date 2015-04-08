@@ -30,7 +30,6 @@ API documentation
 
 Planned features
 ---------------
-* Smoothen depth change switch
 
 Known issues
 ---------------
@@ -39,6 +38,14 @@ Known issues
 
 Version history
 ---------------
+## 0.0.5 (2015-04-??)
+* Uniform stiching of different depths
+* Automatic or manual depth range selection
+* Demo app shows location in a map
+
+## 0.0.4
+* renamed com.vaadin.sonarwidget package to be org.vaadin.sonarwidget
+
 ## 0.0.3 (2013-02-01)
 * Support for Humminbird DAT/SON format
 * Colors
