@@ -12,6 +12,8 @@ import com.google.gwt.core.client.Scheduler.RepeatingCommand;
 import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Position;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.event.dom.client.MouseUpEvent;
+import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.i18n.client.NumberFormat;
@@ -39,6 +41,12 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
 
     public static final int tilewidth = 400;
 
+    public interface ClickListener {
+        void onClick(int coordinate);
+    }
+
+    private ClickListener clickListener;
+
     public VSonarWidget() {
         super();
 
@@ -64,6 +72,16 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         this.ruler.getElement().getStyle().setPosition(Position.FIXED);
 
         sinkEvents(Event.ONMOUSEMOVE);
+
+        ruler.sinkEvents(Event.ONMOUSEUP);
+        ruler.addMouseUpHandler(new MouseUpHandler() {
+
+            @Override
+            public void onMouseUp(MouseUpEvent event) {
+                onMouseClick(getMouseCursorPoint(event.getClientX(), event.getClientY()));
+            }
+        });
+
         addScrollHandler(this);
 
         Scheduler.get().scheduleEntry(new RepeatingCommand() {
@@ -80,6 +98,10 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
                 return false;
             }
         });
+    }
+
+    public void setListener(ClickListener listener) {
+        this.clickListener = listener;
     }
 
     public void setDirty() {
@@ -239,6 +261,12 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         updateTextLabels(coordinate);
     }
 
+    private void onMouseClick(Point coordinate) {
+        if (clickListener != null) {
+            clickListener.onClick(coordinate.getX());
+        }
+    }
+
     private void updateTextLabels(Point coordinate) {
         this.labels.setVisible(true);
         this.labels
@@ -270,7 +298,8 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
     public void onBrowserEvent(Event event) {
         switch (DOM.eventGetType(event)) {
         case Event.ONMOUSEMOVE:
-            onMouseHover(getMouseCursorPoint(event));
+            onMouseHover(getMouseCursorPoint(event.getClientX(),
+                    event.getClientY()));
             break;
         default:
             super.onBrowserEvent(event);
@@ -278,9 +307,9 @@ public class VSonarWidget extends ScrollPanel implements ScrollHandler {
         }
     }
 
-    private Point getMouseCursorPoint(Event event) {
-        Point pt = new Point(event.getClientX() - getAbsoluteLeft()
-                + getHorizontalScrollPosition(), event.getClientY()
+    private Point getMouseCursorPoint(int clientX, int clientY) {
+        Point pt = new Point(clientX - getAbsoluteLeft()
+                + getHorizontalScrollPosition(), clientY
                 - getAbsoluteTop());
         return pt;
     }

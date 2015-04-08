@@ -1,16 +1,23 @@
 package org.vaadin.sonarwidgetdemo;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.vaadin.sonarwidget.SonarWidget;
+import org.vaadin.sonarwidget.SonarWidget.SelectedPingEvent;
+import org.vaadin.sonarwidget.SonarWidget.SelectedPingListener;
+import org.vaadin.sonarwidget.data.Ping;
 import org.vaadin.sonarwidget.data.Sonar.Type;
 
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.tapio.googlemaps.GoogleMap;
+import com.vaadin.tapio.googlemaps.client.LatLon;
+import com.vaadin.tapio.googlemaps.client.overlays.GoogleMapMarker;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
@@ -25,6 +32,7 @@ public class SonarWidgetApplication extends UI {
     private int colorbits = 0;
     private VerticalLayout sonarLayout;
     private float range;
+    private GoogleMap mapsComponent;
 
     @Override
     protected void init(VaadinRequest request) {
@@ -144,11 +152,19 @@ public class SonarWidgetApplication extends UI {
 
         selector.select("2D Sonar0011.slg");
 
+        mapsComponent = new GoogleMap("apiKey", null, "english");
+        mapsComponent.setWidth("100%");
+        mapsComponent.setZoom(16);
+
         controlLayout.addComponent(selector);
         controlLayout.addComponent(overlayCheck);
         controlLayout.addComponent(colorsettings);
         controlLayout.addComponent(rangeSelector);
         controlLayout.addComponent(rangeSlider);
+        controlLayout.addComponent(mapsComponent);
+        controlLayout.setExpandRatio(mapsComponent, 1.0f);
+        controlLayout.setWidth("100%");
+
         layout.addComponent(controlLayout);
         layout.addComponent(sonarLayout);
         layout.setSizeFull();
@@ -170,6 +186,24 @@ public class SonarWidgetApplication extends UI {
         SonarWidget sonarWidget = new SonarWidget(new File(
                 "/Users/cape/Code/sonar/" + filename), type);
 
+        sonarWidget.addSelectedPingListener(new SelectedPingListener() {
+
+            @Override
+            public void selectPing(SelectedPingEvent event) {
+                try {
+                    Ping ping = event.getPing();
+                    LatLon pos = new LatLon(ping.getLatitude(), ping
+                            .getLongitude());
+                    mapsComponent.setCenter(pos);
+                    mapsComponent.addMarker(new GoogleMapMarker("Depth: "
+                            + ping.getDepth(), pos,
+                            false));
+                } catch (IOException e) {
+                    // Can't do nothing about it.
+                    e.printStackTrace();
+                }
+            }
+        });
         sonarWidget.setSizeFull();
         sonarLayout.addComponent(sonarWidget);
         reDrawSonarWidget();

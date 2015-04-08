@@ -6,6 +6,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Date;
 
 import javax.imageio.ImageIO;
@@ -23,6 +25,8 @@ import org.vaadin.sonarwidget.widgetset.client.ui.SonarWidgetState;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.Component;
+import com.vaadin.util.ReflectTools;
 
 public class SonarWidget extends AbstractComponent {
 
@@ -109,6 +113,11 @@ public class SonarWidget extends AbstractComponent {
                     lowlimits, depths, temps);
         }
 
+        @Override
+        public void clicked(int coordinate) {
+            fireEvent(new SelectedPingEvent(SonarWidget.this, coordinate));
+        }
+
     };
 
     public SonarWidget(File file, Type preferredChannel) {
@@ -131,6 +140,50 @@ public class SonarWidget extends AbstractComponent {
         getState().sidescan = sonar.getType() == Type.eSideScan;
         setColor(0);
         setOverlay(false);
+    }
+
+    public interface SelectedPingListener extends Serializable {
+        public static final Method BUTTON_CLICK_METHOD = ReflectTools
+                .findMethod(SelectedPingListener.class, "selectPing",
+                        SelectedPingEvent.class);
+
+        public void selectPing(SelectedPingEvent event);
+    }
+
+    public static class SelectedPingEvent extends Component.Event {
+
+        private int coordinate;
+        private SonarWidget widget;
+
+        public SelectedPingEvent(SonarWidget sonarWidget, int coordinate) {
+            super(sonarWidget);
+            this.widget = sonarWidget;
+            this.coordinate = coordinate;
+        }
+
+        public Ping getPing() throws IOException {
+            int index = (int) Math
+                    .min(coordinate, widget.sonar.getLength() - 1);
+            if (index < 0) {
+                index = 0;
+            }
+
+            Ping[] pingRange = widget.sonar.getPingRange(index, 1);
+
+            return pingRange[0];
+        }
+    }
+
+    public void addSelectedPingListener(
+            SelectedPingListener listener) {
+        addListener(SelectedPingEvent.class, listener,
+                SelectedPingListener.BUTTON_CLICK_METHOD);
+    }
+
+    public void removeSelectedPingListener(
+            SelectedPingListener listener) {
+        removeListener(SelectedPingEvent.class, listener,
+                SelectedPingListener.BUTTON_CLICK_METHOD);
     }
 
     public void setOverlay(boolean booleanValue) {

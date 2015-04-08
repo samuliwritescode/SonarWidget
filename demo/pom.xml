@@ -12,7 +12,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<vaadin.version>7.0.0</vaadin.version>
+		<vaadin.version>7.4.3</vaadin.version>
 		<vaadin.plugin.version>${vaadin.version}</vaadin.plugin.version>
 		<sonarwidget.version>0.0.4-SNAPSHOT</sonarwidget.version>
 	</properties>
@@ -88,9 +88,9 @@
             </plugin>
 
 			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
+				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<version>7.2.2.v20101205</version>
+				<version>9.3.0.M2</version>
 				<configuration>
 					<webAppSourceDirectory>${project.build.directory}/${project.build.finalName}</webAppSourceDirectory>
 					<!-- <scanIntervalSeconds>5</scanIntervalSeconds> -->
@@ -189,18 +189,17 @@
                <version>2.4</version>
                <scope>provided</scope>
        </dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
-			<version>7.2.2.v20101205</version>
-			<scope>test</scope>
-		</dependency>
 		
 		<dependency>
             <groupId>org.vaadin.addons</groupId>
             <artifactId>sonarwidget</artifactId>
         	<version>${sonarwidget.version}</version>                        
 	   	</dependency>
+		<dependency>
+		   <groupId>com.vaadin.tapio</groupId>
+		   <artifactId>googlemaps</artifactId>
+		   <version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 </project>

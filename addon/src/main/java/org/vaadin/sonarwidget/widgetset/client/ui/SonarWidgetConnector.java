@@ -11,7 +11,7 @@ import com.vaadin.shared.ui.Connect;
 
 @Connect(SonarWidget.class)
 public class SonarWidgetConnector extends AbstractComponentConnector implements
-        ElementResizeListener {
+        ElementResizeListener, VSonarWidget.ClickListener {
 
     private static final long serialVersionUID = 1L;
     SonarWidgetServerRpc serverRpc = RpcProxy
@@ -65,6 +65,7 @@ public class SonarWidgetConnector extends AbstractComponentConnector implements
         super.onUnregister();
         getLayoutManager().removeElementResizeListener(
                 getWidget().getElement(), this);
+        getWidget().setListener(null);
     }
 
     @Override
@@ -72,5 +73,12 @@ public class SonarWidgetConnector extends AbstractComponentConnector implements
         super.init();
         getLayoutManager().addElementResizeListener(getWidget().getElement(),
                 this);
+
+        getWidget().setListener(this);
+    }
+
+    @Override
+    public void onClick(int coordinate) {
+        serverRpc.clicked(coordinate);
     }
 }
