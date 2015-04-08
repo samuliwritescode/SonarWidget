@@ -38,7 +38,7 @@ Known issues
 
 Version history
 ---------------
-## 0.0.5 (2015-04-??)
+## 0.0.5 (2015-04-08)
 * Uniform stiching of different depths
 * Automatic or manual depth range selection
 * Demo app shows location in a map
