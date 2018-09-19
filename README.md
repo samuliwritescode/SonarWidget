@@ -1,3 +1,6 @@
+[![Published on Vaadin  Directory](https://img.shields.io/badge/Vaadin%20Directory-published-00b4f0.svg)](https://vaadin.com/directory/component/sonarwidget)
+[![Stars on Vaadin Directory](https://img.shields.io/vaadin-directory/star/sonarwidget.svg)](https://vaadin.com/directory/component/sonarwidget)
+
 Sonar widget for Vaadin
 =======================
 
@@ -62,7 +65,7 @@ Version history
 Licensing
 ---------
 
-Copyright 2012 Samuli Penttil‰
+Copyright 2012 Samuli Penttil√§
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
